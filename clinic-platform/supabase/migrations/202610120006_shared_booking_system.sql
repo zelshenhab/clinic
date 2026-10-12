@@ -26,7 +26,7 @@ create function public.booking_commit(p_actor uuid,p_clinic uuid,p_input jsonb) 
 language plpgsql security definer set search_path='' as $$
 declare a public.appointments;s public.services;doctor uuid=(p_input->>'doctor_id')::uuid;patient uuid=(p_input->>'patient_id')::uuid;service uuid=(p_input->>'service_id')::uuid;start_time timestamptz=(p_input->>'starts_at')::timestamptz;
 begin
- 
+
  perform pg_advisory_xact_lock(hashtextextended('clinic:'||p_clinic::text,0));
  perform pg_advisory_xact_lock(hashtextextended(doctor::text,0));
  if not exists(select 1 from public.clinic_memberships where clinic_id=p_clinic and user_id=patient) then raise exception 'NOT_FOUND';end if;
