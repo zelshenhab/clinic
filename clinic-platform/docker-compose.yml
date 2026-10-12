@@ -1,0 +1,10 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    env_file: .env
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+# Supabase runs through its official CLI stack; configure a reachable SUPABASE_URL for containers.

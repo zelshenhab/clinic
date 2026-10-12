@@ -1,0 +1,1 @@
+Policies are versioned inside migrations. No client writes are granted. Appointments and notifications expose only authorized rows for Realtime. Medical records remain default-deny until the dedicated access workflow is reviewed.

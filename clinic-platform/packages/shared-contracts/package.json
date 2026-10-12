@@ -1,0 +1,18 @@
+{
+  "name": "@clinic/shared-contracts",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    },
+    "./catalog": {
+      "types": "./catalog.d.ts",
+      "default": "./catalog.js"
+    }
+  },
+  "dependencies": {
+    "zod": "^4.6.6"
+  }
+}

@@ -1,0 +1,5410 @@
+openapi: 3.1.0
+info:
+  title: Clinic Platform API
+  version: 0.5.0
+servers:
+  - url: http://localhost:3000
+security:
+  - bearerAuth: []
+paths:
+  /health:
+    get:
+      summary: Process liveness, not database readiness
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+      security: []
+  /api/v1/clinics:
+    get:
+      summary: Active public clinics
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+      security: []
+  /api/v1/clinics/{clinicId}:
+    get:
+      summary: Public clinic information
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+      security: []
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+  /api/v1/clinics/{clinicId}/settings:
+    get:
+      summary: Public clinic settings
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+      security: []
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+  /api/v1/clinics/{clinicId}/doctors:
+    get:
+      summary: Clinic doctors
+      description: Only active public catalog records in the selected clinic. Lists return data.items plus pagination; prices are RUB. Promotion reads include only active time-window records. Strict queries reject unknown parameter names. Name search matches RU and EN; locale controls name sorting. featured sorting uses configured sort_order; it does not remove non-featured list rows.
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                  - message
+                properties:
+                  success:
+                    const: true
+                  data:
+                    $ref: "#/components/schemas/DoctorPage"
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "500":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: search
+          in: query
+          schema:
+            type: string
+            maxLength: 100
+            default: ""
+        - name: specialtyId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: serviceId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 12
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum:
+              - featured
+              - name
+              - price_asc
+              - price_desc
+              - experience_desc
+            default: featured
+        - name: locale
+          in: query
+          schema:
+            type: string
+            enum:
+              - ru
+              - en
+            default: ru
+      security: []
+  /api/v1/clinics/{clinicId}/specialties:
+    get:
+      summary: Clinic specialties
+      description: Only active public catalog records in the selected clinic. Lists return data.items plus pagination; prices are RUB. Promotion reads include only active time-window records. Strict queries reject unknown parameter names. Name search matches RU and EN; locale controls name sorting. featured sorting uses configured sort_order; it does not remove non-featured list rows.
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                  - message
+                properties:
+                  success:
+                    const: true
+                  data:
+                    $ref: "#/components/schemas/SpecialtyPage"
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "500":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: search
+          in: query
+          schema:
+            type: string
+            maxLength: 100
+            default: ""
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 12
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum:
+              - featured
+              - name
+              - price_asc
+              - price_desc
+              - experience_desc
+            default: featured
+        - name: locale
+          in: query
+          schema:
+            type: string
+            enum:
+              - ru
+              - en
+            default: ru
+      security: []
+  /api/v1/auth/verify-session:
+    post:
+      summary: Validate Supabase session
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+  /api/v1/auth/me:
+    get:
+      summary: Authenticated identity
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+  /api/v1/auth/logout:
+    post:
+      summary: Revoke current session
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+  /api/v1/me/profile:
+    get:
+      summary: Current patient profile, null before completion
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+    patch:
+      summary: Create or update the verified patient profile
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+                - full_name
+              properties:
+                full_name:
+                  type: string
+                  minLength: 2
+                  maxLength: 120
+                email:
+                  type:
+                    - string
+                    - "null"
+                  format: email
+                language:
+                  type: string
+                  enum:
+                    - ru
+                    - en
+  /api/v1/me/appointments:
+    get:
+      summary: Current patient appointments in the selected clinic
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+      parameters:
+        - name: clinic_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+  /api/v1/clinics/{clinicId}/doctors/{doctorId}:
+    get:
+      summary: Clinic doctor detail
+      description: Related records are bounded paginated collections. Schedule overview is not appointment availability. Clinic-specific assignment metadata and service prices are used.
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                  - message
+                properties:
+                  success:
+                    const: true
+                  data:
+                    $ref: "#/components/schemas/DoctorDetail"
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "500":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: doctorId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 12
+        - name: locale
+          in: query
+          schema:
+            type: string
+            enum:
+              - ru
+              - en
+            default: ru
+      security: []
+  /api/v1/clinics/{clinicId}/specialties/{specialtyId}:
+    get:
+      summary: Clinic specialty detail
+      description: Related records are bounded paginated collections. Schedule overview is not appointment availability. Clinic-specific assignment metadata and service prices are used.
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                  - message
+                properties:
+                  success:
+                    const: true
+                  data:
+                    $ref: "#/components/schemas/SpecialtyDetail"
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "500":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: specialtyId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 12
+        - name: locale
+          in: query
+          schema:
+            type: string
+            enum:
+              - ru
+              - en
+            default: ru
+      security: []
+  /api/v1/clinics/{clinicId}/services:
+    get:
+      summary: Clinic services
+      description: Only active public catalog records in the selected clinic. Lists return data.items plus pagination; prices are RUB. Promotion reads include only active time-window records. Strict queries reject unknown parameter names. Name search matches RU and EN; locale controls name sorting. featured sorting uses configured sort_order; it does not remove non-featured list rows.
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                  - message
+                properties:
+                  success:
+                    const: true
+                  data:
+                    $ref: "#/components/schemas/ServicePage"
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "500":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: search
+          in: query
+          schema:
+            type: string
+            maxLength: 100
+            default: ""
+        - name: specialtyId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: doctorId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: category
+          in: query
+          schema:
+            type: string
+            pattern: ^[a-z_]{1,40}$
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 12
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum:
+              - featured
+              - name
+              - price_asc
+              - price_desc
+              - experience_desc
+            default: featured
+        - name: locale
+          in: query
+          schema:
+            type: string
+            enum:
+              - ru
+              - en
+            default: ru
+      security: []
+  /api/v1/clinics/{clinicId}/services/{serviceId}:
+    get:
+      summary: Clinic service detail
+      description: Related records are bounded paginated collections. Schedule overview is not appointment availability. Clinic-specific assignment metadata and service prices are used.
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                  - message
+                properties:
+                  success:
+                    const: true
+                  data:
+                    $ref: "#/components/schemas/ServiceDetail"
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "500":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: serviceId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 12
+        - name: locale
+          in: query
+          schema:
+            type: string
+            enum:
+              - ru
+              - en
+            default: ru
+      security: []
+  /api/v1/clinics/{clinicId}/promotions:
+    get:
+      summary: Clinic promotions
+      description: Only active public catalog records in the selected clinic. Lists return data.items plus pagination; prices are RUB. Promotion reads include only active time-window records. Strict queries reject unknown parameter names. Name search matches RU and EN; locale controls name sorting. featured sorting uses configured sort_order; it does not remove non-featured list rows.
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                  - message
+                properties:
+                  success:
+                    const: true
+                  data:
+                    $ref: "#/components/schemas/PromotionPage"
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "500":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 12
+      security: []
+  /api/v1/clinics/{clinicId}/home:
+    get:
+      summary: Bounded clinic home catalog
+      description: Four current promotions, six specialties, three featured doctors and four featured services at most. Empty featured lists are legitimate empty sections. No availability slots are generated.
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                  - message
+                properties:
+                  success:
+                    const: true
+                  data:
+                    $ref: "#/components/schemas/Home"
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "500":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: locale
+          in: query
+          schema:
+            type: string
+            enum:
+              - ru
+              - en
+            default: ru
+      security: []
+  /api/v1/clinics/{clinicId}/booking-context:
+    get:
+      summary: Validate Phase 4 booking selections
+      description: Read-only preparation. Checks clinic existence, assignment/service/specialty membership and doctor/service compatibility. Does not create appointments or calculate availability. online_booking_enabled is always false in Phase 3.
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                  - message
+                properties:
+                  success:
+                    const: true
+                  data:
+                    $ref: "#/components/schemas/BookingContext"
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "500":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: doctorId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: serviceId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: specialtyId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: locale
+          in: query
+          schema:
+            type: string
+            enum:
+              - ru
+              - en
+            default: ru
+      security: []
+  /api/v1/me/notifications:
+    get:
+      summary: Latest 50 notifications for verified user and clinic
+      description: Verified bearer identity controls recipient, clinic UUID controls tenancy. No demo notifications or mark-as-read mutation.
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                  - message
+                properties:
+                  success:
+                    const: true
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Notification"
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "500":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+      parameters:
+        - name: clinic_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+  /api/v1/admin/me:
+    get:
+      tags:
+        - Admin
+      summary: Verified staff identity and active assignments
+      description: All active staff
+      parameters: []
+      responses:
+        "200":
+          description: Committed operation or authorized read
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    const: true
+                  data:
+                    type: object
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+  /api/v1/admin/clinics:
+    get:
+      tags:
+        - Admin
+      summary: List only authorized clinics
+      description: All active staff
+      parameters: []
+      responses:
+        "200":
+          description: Committed operation or authorized read
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    const: true
+                  data:
+                    type: object
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+  /api/v1/admin/analytics:
+    get:
+      tags:
+        - Admin
+      summary: Cross-clinic aggregates, each clinic timezone
+      description: SUPER_ADMIN
+      parameters:
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+            pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))$
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+            pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))$
+      responses:
+        "200":
+          description: Committed operation or authorized read
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    const: true
+                  data:
+                    type: object
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+  /api/v1/admin/system:
+    get:
+      tags:
+        - Admin
+      summary: Read platform booking controls
+      description: SUPER_ADMIN
+      parameters: []
+      responses:
+        "200":
+          description: Committed operation or authorized read
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    const: true
+                  data:
+                    type: object
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+    patch:
+      tags:
+        - Admin
+      summary: Update platform booking controls and audit
+      description: SUPER_ADMIN
+      parameters: []
+      responses:
+        "200":
+          description: Committed operation or authorized read
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    const: true
+                  data:
+                    type: object
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SystemSettings"
+  /api/v1/admin/clinics/{clinicId}/dashboard:
+    get:
+      tags:
+        - Admin
+      summary: SQL-aggregated clinic overview
+      description: All staff; DOCTOR own statistics only
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+            pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))$
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+            pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))$
+      responses:
+        "200":
+          description: Committed operation or authorized read
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    const: true
+                  data:
+                    type: object
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+  /api/v1/admin/clinics/{clinicId}/options:
+    get:
+      tags:
+        - Admin
+      summary: Bounded active doctor/service/specialty options
+      description: All staff; DOCTOR own options only
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Committed operation or authorized read
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    const: true
+                  data:
+                    type: object
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+  /api/v1/admin/clinics/{clinicId}/calendar:
+    get:
+      tags:
+        - Admin
+      summary: Bounded timezone-safe calendar (1000 events with explicit truncation)
+      description: All staff; DOCTOR own events only
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+            pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+            pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+        - name: doctor_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+      responses:
+        "200":
+          description: Committed operation or authorized read
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    const: true
+                  data:
+                    type: object
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+  /api/v1/admin/clinics/{clinicId}/availability:
+    get:
+      tags:
+        - Admin
+      summary: Server-calculated exclusive doctor availability
+      description: All staff; DOCTOR own identity only
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: doctor_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        - name: service_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+            pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))$
+      responses:
+        "200":
+          description: Committed operation or authorized read
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    const: true
+                  data:
+                    $ref: "#/components/schemas/Availability"
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+  /api/v1/admin/clinics/{clinicId}/appointments:
+    get:
+      tags:
+        - Admin
+      summary: Paginated appointments
+      description: All staff; DOCTOR own appointments only
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+            maxLength: 100
+        - name: page
+          in: query
+          required: false
+          schema:
+            default: 1
+            type: integer
+            minimum: 1
+            maximum: 1000
+        - name: limit
+          in: query
+          required: false
+          schema:
+            default: 20
+            type: integer
+            minimum: 1
+            maximum: 100
+        - name: sort
+          in: query
+          required: false
+          schema:
+            default: newest
+            type: string
+            enum:
+              - newest
+              - oldest
+        - name: patient_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        - name: doctor_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        - name: specialty_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        - name: service_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - pending
+              - confirmed
+              - completed
+              - cancelled
+              - no_show
+        - name: active
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - "true"
+              - "false"
+        - name: from
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+            pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+        - name: to
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+            pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+      responses:
+        "200":
+          description: Committed operation or authorized read
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    const: true
+                  data:
+                    $ref: "#/components/schemas/AdminPage"
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+    post:
+      tags:
+        - Admin
+      summary: Atomically book, snapshot price, append history/audit and emit private invalidation
+      description: CLINIC_ADMIN, RECEPTIONIST or SUPER_ADMIN
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "201":
+          description: Committed operation or authorized read
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    const: true
+                  data:
+                    type: object
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminBook"
+  /api/v1/admin/clinics/{clinicId}/patients:
+    get:
+      tags:
+        - Admin
+      summary: Paginated patients
+      description: CLINIC_ADMIN, RECEPTIONIST or SUPER_ADMIN
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+            maxLength: 100
+        - name: page
+          in: query
+          required: false
+          schema:
+            default: 1
+            type: integer
+            minimum: 1
+            maximum: 1000
+        - name: limit
+          in: query
+          required: false
+          schema:
+            default: 20
+            type: integer
+            minimum: 1
+            maximum: 100
+        - name: sort
+          in: query
+          required: false
+          schema:
+            default: newest
+            type: string
+            enum:
+              - newest
+              - oldest
+        - name: patient_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        - name: doctor_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        - name: specialty_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        - name: service_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - pending
+              - confirmed
+              - completed
+              - cancelled
+              - no_show
+        - name: active
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - "true"
+              - "false"
+        - name: from
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+            pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+        - name: to
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+            pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+      responses:
+        "200":
+          description: Committed operation or authorized read
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    const: true
+                  data:
+                    $ref: "#/components/schemas/AdminPage"
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+    post:
+      tags:
+        - Admin
+      summary: Invite new identity or link an authorized existing profile
+      description: CLINIC_ADMIN or RECEPTIONIST can link existing same-clinic profiles; SUPER_ADMIN required for linking an existing profile into a new clinic. Existing shared profile is unchanged.
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "201":
+          description: Committed operation or authorized read
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    const: true
+                  data:
+                    type: object
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminPatient"
+  /api/v1/admin/clinics/{clinicId}/doctors:
+    get:
+      tags:
+        - Admin
+      summary: Paginated doctors
+      description: CLINIC_ADMIN or SUPER_ADMIN
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+            maxLength: 100
+        - name: page
+          in: query
+          required: false
+          schema:
+            default: 1
+            type: integer
+            minimum: 1
+            maximum: 1000
+        - name: limit
+          in: query
+          required: false
+          schema:
+            default: 20
+            type: integer
+            minimum: 1
+            maximum: 100
+        - name: sort
+          in: query
+          required: false
+          schema:
+            default: newest
+            type: string
+            enum:
+              - newest
+              - oldest
+        - name: patient_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        - name: doctor_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        - name: specialty_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        - name: service_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - pending
+              - confirmed
+              - completed
+              - cancelled
+              - no_show
+        - name: active
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - "true"
+              - "false"
+        - name: from
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+            pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+        - name: to
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+            pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+      responses:
+        "200":
+          description: Committed operation or authorized read
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    const: true
+                  data:
+                    $ref: "#/components/schemas/AdminPage"
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+    post:
+      tags:
+        - Admin
+      summary: Create clinic-specific doctors
+      description: CLINIC_ADMIN or SUPER_ADMIN
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "201":
+          description: Committed operation or authorized read
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    const: true
+                  data:
+                    type: object
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminDoctors"
+  /api/v1/admin/clinics/{clinicId}/specialties:
+    get:
+      tags:
+        - Admin
+      summary: Paginated specialties
+      description: CLINIC_ADMIN or SUPER_ADMIN
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+            maxLength: 100
+        - name: page
+          in: query
+          required: false
+          schema:
+            default: 1
+            type: integer
+            minimum: 1
+            maximum: 1000
+        - name: limit
+          in: query
+          required: false
+          schema:
+            default: 20
+            type: integer
+            minimum: 1
+            maximum: 100
+        - name: sort
+          in: query
+          required: false
+          schema:
+            default: newest
+            type: string
+            enum:
+              - newest
+              - oldest
+        - name: patient_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        - name: doctor_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        - name: specialty_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        - name: service_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - pending
+              - confirmed
+              - completed
+              - cancelled
+              - no_show
+        - name: active
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - "true"
+              - "false"
+        - name: from
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+            pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+        - name: to
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+            pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+      responses:
+        "200":
+          description: Committed operation or authorized read
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    const: true
+                  data:
+                    $ref: "#/components/schemas/AdminPage"
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+    post:
+      tags:
+        - Admin
+      summary: Create clinic-specific specialties
+      description: CLINIC_ADMIN or SUPER_ADMIN
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "201":
+          description: Committed operation or authorized read
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    const: true
+                  data:
+                    type: object
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminSpecialties"
+  /api/v1/admin/clinics/{clinicId}/services:
+    get:
+      tags:
+        - Admin
+      summary: Paginated services
+      description: CLINIC_ADMIN or SUPER_ADMIN
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+            maxLength: 100
+        - name: page
+          in: query
+          required: false
+          schema:
+            default: 1
+            type: integer
+            minimum: 1
+            maximum: 1000
+        - name: limit
+          in: query
+          required: false
+          schema:
+            default: 20
+            type: integer
+            minimum: 1
+            maximum: 100
+        - name: sort
+          in: query
+          required: false
+          schema:
+            default: newest
+            type: string
+            enum:
+              - newest
+              - oldest
+        - name: patient_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        - name: doctor_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        - name: specialty_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        - name: service_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - pending
+              - confirmed
+              - completed
+              - cancelled
+              - no_show
+        - name: active
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - "true"
+              - "false"
+        - name: from
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+            pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+        - name: to
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+            pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+      responses:
+        "200":
+          description: Committed operation or authorized read
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    const: true
+                  data:
+                    $ref: "#/components/schemas/AdminPage"
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+    post:
+      tags:
+        - Admin
+      summary: Create clinic-specific services
+      description: CLINIC_ADMIN or SUPER_ADMIN
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "201":
+          description: Committed operation or authorized read
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    const: true
+                  data:
+                    type: object
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminServices"
+  /api/v1/admin/clinics/{clinicId}/promotions:
+    get:
+      tags:
+        - Admin
+      summary: Paginated promotions
+      description: CLINIC_ADMIN or SUPER_ADMIN
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+            maxLength: 100
+        - name: page
+          in: query
+          required: false
+          schema:
+            default: 1
+            type: integer
+            minimum: 1
+            maximum: 1000
+        - name: limit
+          in: query
+          required: false
+          schema:
+            default: 20
+            type: integer
+            minimum: 1
+            maximum: 100
+        - name: sort
+          in: query
+          required: false
+          schema:
+            default: newest
+            type: string
+            enum:
+              - newest
+              - oldest
+        - name: patient_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        - name: doctor_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        - name: specialty_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        - name: service_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - pending
+              - confirmed
+              - completed
+              - cancelled
+              - no_show
+        - name: active
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - "true"
+              - "false"
+        - name: from
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+            pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+        - name: to
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+            pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+      responses:
+        "200":
+          description: Committed operation or authorized read
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    const: true
+                  data:
+                    $ref: "#/components/schemas/AdminPage"
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+    post:
+      tags:
+        - Admin
+      summary: Create clinic-specific promotions
+      description: CLINIC_ADMIN or SUPER_ADMIN
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "201":
+          description: Committed operation or authorized read
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    const: true
+                  data:
+                    type: object
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminPromotions"
+  /api/v1/admin/clinics/{clinicId}/staff:
+    get:
+      tags:
+        - Admin
+      summary: Paginated staff
+      description: SUPER_ADMIN
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+            maxLength: 100
+        - name: page
+          in: query
+          required: false
+          schema:
+            default: 1
+            type: integer
+            minimum: 1
+            maximum: 1000
+        - name: limit
+          in: query
+          required: false
+          schema:
+            default: 20
+            type: integer
+            minimum: 1
+            maximum: 100
+        - name: sort
+          in: query
+          required: false
+          schema:
+            default: newest
+            type: string
+            enum:
+              - newest
+              - oldest
+        - name: patient_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        - name: doctor_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        - name: specialty_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        - name: service_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - pending
+              - confirmed
+              - completed
+              - cancelled
+              - no_show
+        - name: active
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - "true"
+              - "false"
+        - name: from
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+            pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+        - name: to
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+            pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+      responses:
+        "200":
+          description: Committed operation or authorized read
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    const: true
+                  data:
+                    $ref: "#/components/schemas/AdminPage"
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+    post:
+      tags:
+        - Admin
+      summary: Invite or update staff assignment
+      description: SUPER_ADMIN only; self assignment denied; deactivate old role before replacing role
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "201":
+          description: Committed operation or authorized read
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    const: true
+                  data:
+                    type: object
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminStaff"
+  /api/v1/admin/clinics/{clinicId}/schedules:
+    get:
+      tags:
+        - Admin
+      summary: Paginated schedules
+      description: CLINIC_ADMIN, DOCTOR own schedule or SUPER_ADMIN
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+            maxLength: 100
+        - name: page
+          in: query
+          required: false
+          schema:
+            default: 1
+            type: integer
+            minimum: 1
+            maximum: 1000
+        - name: limit
+          in: query
+          required: false
+          schema:
+            default: 20
+            type: integer
+            minimum: 1
+            maximum: 100
+        - name: sort
+          in: query
+          required: false
+          schema:
+            default: newest
+            type: string
+            enum:
+              - newest
+              - oldest
+        - name: patient_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        - name: doctor_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        - name: specialty_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        - name: service_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - pending
+              - confirmed
+              - completed
+              - cancelled
+              - no_show
+        - name: active
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - "true"
+              - "false"
+        - name: from
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+            pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+        - name: to
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+            pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+      responses:
+        "200":
+          description: Committed operation or authorized read
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    const: true
+                  data:
+                    $ref: "#/components/schemas/AdminPage"
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+  /api/v1/admin/clinics/{clinicId}/appointments/{id}:
+    get:
+      tags:
+        - Admin
+      summary: Clinic-scoped appointments detail
+      description: All staff; DOCTOR own appointments only
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Committed operation or authorized read
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    const: true
+                  data:
+                    type: object
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+    patch:
+      tags:
+        - Admin
+      summary: Controlled status change or reschedule with expected version
+      description: CLINIC_ADMIN, RECEPTIONIST or SUPER_ADMIN; DOCTOR own confirmed appointments to completed/no_show after start. 409 for occupied slot/stale version.
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Committed operation or authorized read
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    const: true
+                  data:
+                    type: object
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminChange"
+  /api/v1/admin/clinics/{clinicId}/patients/{id}:
+    get:
+      tags:
+        - Admin
+      summary: Clinic-scoped patients detail
+      description: CLINIC_ADMIN, RECEPTIONIST or SUPER_ADMIN
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Committed operation or authorized read
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    const: true
+                  data:
+                    type: object
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+  /api/v1/admin/clinics/{clinicId}/doctors/{id}:
+    get:
+      tags:
+        - Admin
+      summary: Clinic-scoped doctors detail
+      description: CLINIC_ADMIN or SUPER_ADMIN
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Committed operation or authorized read
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    const: true
+                  data:
+                    type: object
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+    patch:
+      tags:
+        - Admin
+      summary: Edit or safely deactivate doctors
+      description: CLINIC_ADMIN or SUPER_ADMIN
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Committed operation or authorized read
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    const: true
+                  data:
+                    type: object
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminDoctorsPatch"
+  /api/v1/admin/clinics/{clinicId}/specialties/{id}:
+    get:
+      tags:
+        - Admin
+      summary: Clinic-scoped specialties detail
+      description: CLINIC_ADMIN or SUPER_ADMIN
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Committed operation or authorized read
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    const: true
+                  data:
+                    type: object
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+    patch:
+      tags:
+        - Admin
+      summary: Edit or safely deactivate specialties
+      description: CLINIC_ADMIN or SUPER_ADMIN
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Committed operation or authorized read
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    const: true
+                  data:
+                    type: object
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminSpecialtiesPatch"
+  /api/v1/admin/clinics/{clinicId}/services/{id}:
+    get:
+      tags:
+        - Admin
+      summary: Clinic-scoped services detail
+      description: CLINIC_ADMIN or SUPER_ADMIN
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Committed operation or authorized read
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    const: true
+                  data:
+                    type: object
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+    patch:
+      tags:
+        - Admin
+      summary: Edit or safely deactivate services
+      description: CLINIC_ADMIN or SUPER_ADMIN
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Committed operation or authorized read
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    const: true
+                  data:
+                    type: object
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminServicesPatch"
+  /api/v1/admin/clinics/{clinicId}/promotions/{id}:
+    get:
+      tags:
+        - Admin
+      summary: Clinic-scoped promotions detail
+      description: CLINIC_ADMIN or SUPER_ADMIN
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Committed operation or authorized read
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    const: true
+                  data:
+                    type: object
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+    patch:
+      tags:
+        - Admin
+      summary: Edit or safely deactivate promotions
+      description: CLINIC_ADMIN or SUPER_ADMIN
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Committed operation or authorized read
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    const: true
+                  data:
+                    type: object
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminPromotionsPatch"
+  /api/v1/admin/clinics/{clinicId}/doctors/{id}/schedules:
+    get:
+      tags:
+        - Admin
+      summary: Weekly shifts and future exceptions
+      description: CLINIC_ADMIN, SUPER_ADMIN or own DOCTOR
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Committed operation or authorized read
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    const: true
+                  data:
+                    type: object
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+    put:
+      tags:
+        - Admin
+      summary: Replace schedule atomically; reject conflicts with future bookings
+      description: CLINIC_ADMIN or SUPER_ADMIN
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Committed operation or authorized read
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    const: true
+                  data:
+                    type: object
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminSchedule"
+  /api/v1/admin/clinics/{clinicId}/settings:
+    get:
+      tags:
+        - Admin
+      summary: Clinic settings and booking configuration
+      description: CLINIC_ADMIN or SUPER_ADMIN
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Committed operation or authorized read
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    const: true
+                  data:
+                    type: object
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+    patch:
+      tags:
+        - Admin
+      summary: Update only selected clinic settings
+      description: CLINIC_ADMIN or SUPER_ADMIN; only SUPER_ADMIN changes active. Timezone changes blocked while future bookings exist.
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Committed operation or authorized read
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    const: true
+                  data:
+                    type: object
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminSettings"
+  /api/v1/admin/clinics/{clinicId}/uploads:
+    post:
+      tags:
+        - Admin
+      summary: Authorized public catalog artwork upload
+      description: CLINIC_ADMIN or SUPER_ADMIN
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "201":
+          description: Committed operation or authorized read
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    const: true
+                  data:
+                    type: object
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - image
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: JPEG/PNG/WebP <=5 MiB, <=16M decoded pixels; re-encoded metadata-free WebP; no patient documents
+  /api/v1/clinics/{clinicId}/booking/availability:
+    get:
+      tags:
+        - Booking
+      summary: Shared patient availability
+      description: Verified patient with actual clinic membership
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: doctor_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        - name: service_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+            pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))$
+      responses:
+        "200":
+          description: Committed operation or authorized read
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    const: true
+                  data:
+                    $ref: "#/components/schemas/Availability"
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+  /api/v1/clinics/{clinicId}/booking/appointments:
+    post:
+      tags:
+        - Booking
+      summary: Shared atomic patient booking
+      description: Verified patient with actual clinic membership; backend derives patient identity
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "201":
+          description: Committed operation or authorized read
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    const: true
+                  data:
+                    type: object
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatientBook"
+  /api/v1/clinics/{clinicId}/booking/appointments/{id}:
+    patch:
+      tags:
+        - Booking
+      summary: Cancel own future pending/confirmed appointment
+      description: Verified appointment owner only; expected version mandatory
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Committed operation or authorized read
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - success
+                  - data
+                properties:
+                  success:
+                    const: true
+                  data:
+                    type: object
+                  message:
+                    type: string
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "429":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatientCancel"
+  /api/v1/admin/clinics/{clinicId}/catalog-options:
+    get:
+      tags:
+        - Admin
+      summary: Bounded catalog-options
+      description: CLINIC_ADMIN or SUPER_ADMIN; includes inactive records
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Authorized options, max 100 records per resource
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+  /api/v1/admin/clinics/{clinicId}/schedule-options:
+    get:
+      tags:
+        - Admin
+      summary: Bounded schedule-options
+      description: CLINIC_ADMIN, SUPER_ADMIN or own DOCTOR; includes inactive doctor assignment
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Authorized options, max 100 records per resource
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+  /api/v1/admin/clinics/{clinicId}/filter-options:
+    get:
+      tags:
+        - Admin
+      summary: Bounded filter-options
+      description: All staff; DOCTOR own identity. Includes inactive historical filter references
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Authorized options, max 100 records per resource
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Success:
+      type: object
+      required:
+        - success
+        - data
+        - message
+      properties:
+        success:
+          const: true
+        data: {}
+        message:
+          type: string
+    Error:
+      type: object
+      required:
+        - success
+        - error
+      properties:
+        success:
+          const: false
+        error:
+          type: object
+          required:
+            - code
+            - message
+            - details
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: object
+    LocalizedText:
+      type: object
+      required:
+        - ru
+        - en
+      properties:
+        ru:
+          type: string
+        en:
+          type: string
+    Clinic:
+      type: object
+      required:
+        - id
+        - name
+        - address
+        - description
+        - timezone
+        - working_hours
+      properties:
+        id:
+          type: string
+          format: uuid
+        slug:
+          type: string
+        name:
+          $ref: "#/components/schemas/LocalizedText"
+        address:
+          $ref: "#/components/schemas/LocalizedText"
+        description:
+          $ref: "#/components/schemas/LocalizedText"
+        timezone:
+          type: string
+        phone:
+          type:
+            - string
+            - "null"
+        working_hours:
+          type: object
+        image_url:
+          type:
+            - string
+            - "null"
+          format: uri
+        logo_url:
+          type:
+            - string
+            - "null"
+          format: uri
+    Pagination:
+      type: object
+      required:
+        - page
+        - limit
+        - total
+        - hasMore
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+        total:
+          type: integer
+          minimum: 0
+        hasMore:
+          type: boolean
+    SpecialtyReference:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          $ref: "#/components/schemas/LocalizedText"
+    Specialty:
+      type: object
+      required:
+        - id
+        - clinic_id
+        - name
+        - description
+        - icon
+        - doctor_count
+        - sort_order
+      properties:
+        id:
+          type: string
+          format: uuid
+        clinic_id:
+          type: string
+          format: uuid
+        name:
+          $ref: "#/components/schemas/LocalizedText"
+        description:
+          $ref: "#/components/schemas/LocalizedText"
+        icon:
+          type: string
+        doctor_count:
+          type: integer
+          minimum: 0
+        sort_order:
+          type: integer
+    Doctor:
+      type: object
+      required:
+        - id
+        - clinic_id
+        - name
+        - description
+        - photo_url
+        - professional_title
+        - experience_years
+        - specialties
+        - starting_price_rub
+      properties:
+        id:
+          type: string
+          format: uuid
+        clinic_id:
+          type: string
+          format: uuid
+        name:
+          $ref: "#/components/schemas/LocalizedText"
+        description:
+          $ref: "#/components/schemas/LocalizedText"
+        photo_url:
+          type:
+            - string
+            - "null"
+          format: uri
+        professional_title:
+          $ref: "#/components/schemas/LocalizedText"
+        experience_years:
+          type:
+            - integer
+            - "null"
+          minimum: 0
+          maximum: 80
+        specialties:
+          type: array
+          items:
+            $ref: "#/components/schemas/SpecialtyReference"
+        starting_price_rub:
+          type:
+            - number
+            - "null"
+          minimum: 0
+    Service:
+      type: object
+      required:
+        - id
+        - clinic_id
+        - specialty_id
+        - specialty_name
+        - name
+        - description
+        - price_rub
+        - duration_minutes
+        - category_key
+        - category
+      properties:
+        id:
+          type: string
+          format: uuid
+        clinic_id:
+          type: string
+          format: uuid
+        specialty_id:
+          type: string
+          format: uuid
+        specialty_name:
+          $ref: "#/components/schemas/LocalizedText"
+        name:
+          $ref: "#/components/schemas/LocalizedText"
+        description:
+          $ref: "#/components/schemas/LocalizedText"
+        price_rub:
+          type: number
+          minimum: 0
+        duration_minutes:
+          type: integer
+          minimum: 5
+          maximum: 480
+        category_key:
+          type: string
+        category:
+          $ref: "#/components/schemas/LocalizedText"
+    Promotion:
+      type: object
+      required:
+        - id
+        - clinic_id
+        - title
+        - description
+        - image_url
+        - action_kind
+        - starts_at
+        - ends_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        clinic_id:
+          type: string
+          format: uuid
+        title:
+          $ref: "#/components/schemas/LocalizedText"
+        description:
+          $ref: "#/components/schemas/LocalizedText"
+        image_url:
+          type:
+            - string
+            - "null"
+          format: uri
+        action_kind:
+          type:
+            - string
+            - "null"
+          enum:
+            - doctors
+            - specialties
+            - services
+            - null
+        starts_at:
+          type: string
+          format: date-time
+        ends_at:
+          type: string
+          format: date-time
+    Category:
+      type: object
+      required:
+        - category_key
+        - category
+      properties:
+        category_key:
+          type: string
+        category:
+          $ref: "#/components/schemas/LocalizedText"
+    DoctorPage:
+      type: object
+      required:
+        - items
+        - pagination
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Doctor"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+    SpecialtyPage:
+      type: object
+      required:
+        - items
+        - pagination
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Specialty"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+    ServicePage:
+      type: object
+      required:
+        - items
+        - pagination
+        - categories
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Service"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+        categories:
+          type: array
+          items:
+            $ref: "#/components/schemas/Category"
+    PromotionPage:
+      type: object
+      required:
+        - items
+        - pagination
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Promotion"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+    Schedule:
+      type: object
+      required:
+        - weekday
+        - starts_at
+        - ends_at
+        - breaks
+      properties:
+        weekday:
+          type: integer
+          minimum: 0
+          maximum: 6
+          description: 0 = Sunday; all times are clinic-local wall-clock values.
+        starts_at:
+          type: string
+        ends_at:
+          type: string
+        breaks:
+          type: array
+          items:
+            type: object
+            required:
+              - start
+              - end
+            properties:
+              start:
+                type: string
+              end:
+                type: string
+    DoctorDetail:
+      allOf:
+        - $ref: "#/components/schemas/Doctor"
+        - type: object
+          required:
+            - clinic
+            - education
+            - biography
+            - qualifications
+            - languages
+            - services
+            - schedules
+          properties:
+            clinic:
+              $ref: "#/components/schemas/Clinic"
+            education:
+              $ref: "#/components/schemas/LocalizedText"
+            biography:
+              $ref: "#/components/schemas/LocalizedText"
+            qualifications:
+              $ref: "#/components/schemas/LocalizedText"
+            languages:
+              type: array
+              items:
+                type: string
+            services:
+              $ref: "#/components/schemas/ServicePage"
+            schedules:
+              type: array
+              items:
+                $ref: "#/components/schemas/Schedule"
+    SpecialtyDetail:
+      allOf:
+        - $ref: "#/components/schemas/Specialty"
+        - type: object
+          required:
+            - doctors
+            - services
+          properties:
+            doctors:
+              $ref: "#/components/schemas/DoctorPage"
+            services:
+              $ref: "#/components/schemas/ServicePage"
+    ServiceDetail:
+      allOf:
+        - $ref: "#/components/schemas/Service"
+        - type: object
+          required:
+            - clinic
+            - doctors
+          properties:
+            clinic:
+              $ref: "#/components/schemas/Clinic"
+            doctors:
+              $ref: "#/components/schemas/DoctorPage"
+    Home:
+      type: object
+      required:
+        - clinic
+        - promotions
+        - specialties
+        - doctors
+        - services
+      properties:
+        clinic:
+          $ref: "#/components/schemas/Clinic"
+        promotions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Promotion"
+          maxItems: 4
+        specialties:
+          type: array
+          items:
+            $ref: "#/components/schemas/Specialty"
+          maxItems: 6
+        doctors:
+          type: array
+          items:
+            $ref: "#/components/schemas/Doctor"
+          maxItems: 3
+        services:
+          type: array
+          items:
+            $ref: "#/components/schemas/Service"
+          maxItems: 4
+    BookingContext:
+      type: object
+      required:
+        - clinic
+        - doctor
+        - service
+        - specialty
+        - online_booking_enabled
+      properties:
+        clinic:
+          $ref: "#/components/schemas/Clinic"
+        doctor:
+          anyOf:
+            - $ref: "#/components/schemas/Doctor"
+            - type: "null"
+        service:
+          anyOf:
+            - $ref: "#/components/schemas/Service"
+            - type: "null"
+        specialty:
+          anyOf:
+            - $ref: "#/components/schemas/Specialty"
+            - type: "null"
+        online_booking_enabled:
+          const: false
+    Notification:
+      type: object
+      required:
+        - id
+        - clinic_id
+        - title
+        - body
+        - created_at
+        - read_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        clinic_id:
+          type: string
+          format: uuid
+        title:
+          $ref: "#/components/schemas/LocalizedText"
+        body:
+          $ref: "#/components/schemas/LocalizedText"
+        created_at:
+          type: string
+          format: date-time
+        read_at:
+          type:
+            - string
+            - "null"
+          format: date-time
+    AdminBook:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      type: object
+      properties:
+        patient_id:
+          type: string
+          format: uuid
+          pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        doctor_id:
+          type: string
+          format: uuid
+          pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        service_id:
+          type: string
+          format: uuid
+          pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        starts_at:
+          type: string
+          format: date-time
+          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+      required:
+        - patient_id
+        - doctor_id
+        - service_id
+        - starts_at
+      additionalProperties: false
+    AdminChange:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      type: object
+      properties:
+        expected_updated_at:
+          type: string
+          format: date-time
+          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+        status:
+          type: string
+          enum:
+            - confirmed
+            - completed
+            - cancelled
+            - no_show
+        starts_at:
+          type: string
+          format: date-time
+          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+      required:
+        - expected_updated_at
+      additionalProperties: false
+    AdminSchedule:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      type: object
+      properties:
+        weekly:
+          maxItems: 28
+          type: array
+          items:
+            type: object
+            properties:
+              weekday:
+                type: integer
+                minimum: 0
+                maximum: 6
+              starts_at:
+                type: string
+                pattern: ^(?:[01][0-9]|2[0-3]):[0-5][0-9]$
+              ends_at:
+                type: string
+                pattern: ^(?:[01][0-9]|2[0-3]):[0-5][0-9]$
+              breaks:
+                maxItems: 8
+                type: array
+                items:
+                  type: object
+                  properties:
+                    start:
+                      type: string
+                      pattern: ^(?:[01][0-9]|2[0-3]):[0-5][0-9]$
+                    end:
+                      type: string
+                      pattern: ^(?:[01][0-9]|2[0-3]):[0-5][0-9]$
+                  required:
+                    - start
+                    - end
+                  additionalProperties: false
+            required:
+              - weekday
+              - starts_at
+              - ends_at
+              - breaks
+            additionalProperties: false
+        exceptions:
+          maxItems: 100
+          type: array
+          items:
+            type: object
+            properties:
+              starts_at:
+                type: string
+                format: date-time
+                pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+              ends_at:
+                type: string
+                format: date-time
+                pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+              available:
+                type: boolean
+            required:
+              - starts_at
+              - ends_at
+              - available
+            additionalProperties: false
+      required:
+        - weekly
+        - exceptions
+      additionalProperties: false
+    AdminSettings:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      type: object
+      properties:
+        name:
+          type: object
+          properties:
+            ru:
+              type: string
+              minLength: 2
+              maxLength: 200
+            en:
+              type: string
+              minLength: 2
+              maxLength: 200
+          required:
+            - ru
+            - en
+          additionalProperties: false
+        description:
+          type: object
+          properties:
+            ru:
+              type: string
+              maxLength: 5000
+            en:
+              type: string
+              maxLength: 5000
+          required:
+            - ru
+            - en
+          additionalProperties: false
+        address:
+          type: object
+          properties:
+            ru:
+              type: string
+              minLength: 2
+              maxLength: 200
+            en:
+              type: string
+              minLength: 2
+              maxLength: 200
+          required:
+            - ru
+            - en
+          additionalProperties: false
+        phone:
+          anyOf:
+            - type: string
+              pattern: ^\+[0-9]{8,15}$
+            - type: "null"
+        email:
+          anyOf:
+            - type: string
+              format: email
+              pattern: ^(?:[A-Za-z0-9_'+\-]+\.)*[A-Za-z0-9_'+\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$
+            - type: "null"
+        website:
+          anyOf:
+            - type: string
+              maxLength: 2000
+              format: uri
+            - type: "null"
+        timezone:
+          type: string
+          maxLength: 100
+        logo_url:
+          anyOf:
+            - type: string
+              maxLength: 2000
+              format: uri
+            - type: "null"
+        image_url:
+          anyOf:
+            - type: string
+              maxLength: 2000
+              format: uri
+            - type: "null"
+        working_hours:
+          type: object
+          propertyNames:
+            type: string
+            maxLength: 30
+          additionalProperties:
+            type: string
+            maxLength: 100
+        active:
+          type: boolean
+        booking:
+          type: object
+          properties:
+            slot_step_minutes:
+              type: integer
+              minimum: 5
+              maximum: 60
+          required:
+            - slot_step_minutes
+          additionalProperties: false
+      additionalProperties: false
+    AdminPatient:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        email:
+          type: string
+          maxLength: 200
+          format: email
+          pattern: ^(?:[A-Za-z0-9_'+\-]+\.)*[A-Za-z0-9_'+\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$
+        full_name:
+          type: string
+          minLength: 2
+          maxLength: 120
+        phone:
+          type: string
+          pattern: ^\+[0-9]{8,15}$
+        language:
+          type: string
+          enum:
+            - ru
+            - en
+      required:
+        - full_name
+        - phone
+        - language
+      additionalProperties: false
+    AdminStaff:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        email:
+          type: string
+          maxLength: 200
+          format: email
+          pattern: ^(?:[A-Za-z0-9_'+\-]+\.)*[A-Za-z0-9_'+\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$
+        role:
+          type: string
+          enum:
+            - CLINIC_ADMIN
+            - RECEPTIONIST
+            - DOCTOR
+        doctor_id:
+          anyOf:
+            - type: string
+              format: uuid
+              pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+            - type: "null"
+        active:
+          type: boolean
+      required:
+        - role
+        - active
+      additionalProperties: false
+    PatientBook:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      type: object
+      properties:
+        doctor_id:
+          type: string
+          format: uuid
+          pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        service_id:
+          type: string
+          format: uuid
+          pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        starts_at:
+          type: string
+          format: date-time
+          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+      required:
+        - doctor_id
+        - service_id
+        - starts_at
+      additionalProperties: false
+    SystemSettings:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      type: object
+      properties:
+        booking_horizon_days:
+          type: integer
+          minimum: 7
+          maximum: 180
+        booking_enabled:
+          type: boolean
+      required:
+        - booking_horizon_days
+        - booking_enabled
+      additionalProperties: false
+    AdminDoctors:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      type: object
+      properties:
+        doctor_id:
+          type: string
+          format: uuid
+          pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        name:
+          type: object
+          properties:
+            ru:
+              type: string
+              minLength: 2
+              maxLength: 200
+            en:
+              type: string
+              minLength: 2
+              maxLength: 200
+          required:
+            - ru
+            - en
+          additionalProperties: false
+        description:
+          type: object
+          properties:
+            ru:
+              type: string
+              maxLength: 5000
+            en:
+              type: string
+              maxLength: 5000
+          required:
+            - ru
+            - en
+          additionalProperties: false
+        professional_title:
+          type: object
+          properties:
+            ru:
+              type: string
+              maxLength: 5000
+            en:
+              type: string
+              maxLength: 5000
+          required:
+            - ru
+            - en
+          additionalProperties: false
+        experience_years:
+          anyOf:
+            - type: integer
+              minimum: 0
+              maximum: 80
+            - type: "null"
+        education:
+          type: object
+          properties:
+            ru:
+              type: string
+              maxLength: 5000
+            en:
+              type: string
+              maxLength: 5000
+          required:
+            - ru
+            - en
+          additionalProperties: false
+        biography:
+          type: object
+          properties:
+            ru:
+              type: string
+              maxLength: 5000
+            en:
+              type: string
+              maxLength: 5000
+          required:
+            - ru
+            - en
+          additionalProperties: false
+        qualifications:
+          type: object
+          properties:
+            ru:
+              type: string
+              maxLength: 5000
+            en:
+              type: string
+              maxLength: 5000
+          required:
+            - ru
+            - en
+          additionalProperties: false
+        languages:
+          maxItems: 2
+          type: array
+          items:
+            type: string
+            enum:
+              - ru
+              - en
+        photo_url:
+          anyOf:
+            - type: string
+              maxLength: 2000
+              format: uri
+            - type: "null"
+        active:
+          type: boolean
+        featured:
+          type: boolean
+        sort_order:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        specialty_ids:
+          maxItems: 100
+          type: array
+          items:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        service_ids:
+          maxItems: 100
+          type: array
+          items:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+      required:
+        - name
+        - description
+        - professional_title
+        - experience_years
+        - education
+        - biography
+        - qualifications
+        - languages
+        - active
+        - featured
+        - sort_order
+        - specialty_ids
+        - service_ids
+      additionalProperties: false
+    AdminDoctorsPatch:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      type: object
+      properties:
+        doctor_id:
+          type: string
+          format: uuid
+          pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        name:
+          type: object
+          properties:
+            ru:
+              type: string
+              minLength: 2
+              maxLength: 200
+            en:
+              type: string
+              minLength: 2
+              maxLength: 200
+          required:
+            - ru
+            - en
+          additionalProperties: false
+        description:
+          type: object
+          properties:
+            ru:
+              type: string
+              maxLength: 5000
+            en:
+              type: string
+              maxLength: 5000
+          required:
+            - ru
+            - en
+          additionalProperties: false
+        professional_title:
+          type: object
+          properties:
+            ru:
+              type: string
+              maxLength: 5000
+            en:
+              type: string
+              maxLength: 5000
+          required:
+            - ru
+            - en
+          additionalProperties: false
+        experience_years:
+          anyOf:
+            - type: integer
+              minimum: 0
+              maximum: 80
+            - type: "null"
+        education:
+          type: object
+          properties:
+            ru:
+              type: string
+              maxLength: 5000
+            en:
+              type: string
+              maxLength: 5000
+          required:
+            - ru
+            - en
+          additionalProperties: false
+        biography:
+          type: object
+          properties:
+            ru:
+              type: string
+              maxLength: 5000
+            en:
+              type: string
+              maxLength: 5000
+          required:
+            - ru
+            - en
+          additionalProperties: false
+        qualifications:
+          type: object
+          properties:
+            ru:
+              type: string
+              maxLength: 5000
+            en:
+              type: string
+              maxLength: 5000
+          required:
+            - ru
+            - en
+          additionalProperties: false
+        languages:
+          maxItems: 2
+          type: array
+          items:
+            type: string
+            enum:
+              - ru
+              - en
+        photo_url:
+          anyOf:
+            - type: string
+              maxLength: 2000
+              format: uri
+            - type: "null"
+        active:
+          type: boolean
+        featured:
+          type: boolean
+        sort_order:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        specialty_ids:
+          maxItems: 100
+          type: array
+          items:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        service_ids:
+          maxItems: 100
+          type: array
+          items:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+      additionalProperties: false
+    AdminSpecialties:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      type: object
+      properties:
+        name:
+          type: object
+          properties:
+            ru:
+              type: string
+              minLength: 2
+              maxLength: 200
+            en:
+              type: string
+              minLength: 2
+              maxLength: 200
+          required:
+            - ru
+            - en
+          additionalProperties: false
+        description:
+          type: object
+          properties:
+            ru:
+              type: string
+              maxLength: 5000
+            en:
+              type: string
+              maxLength: 5000
+          required:
+            - ru
+            - en
+          additionalProperties: false
+        icon:
+          type: string
+          enum:
+            - medical
+            - heart
+            - brain
+            - skin
+            - eye
+            - scan
+            - child
+            - tooth
+            - bone
+        active:
+          type: boolean
+        sort_order:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        doctor_ids:
+          maxItems: 100
+          type: array
+          items:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+      required:
+        - name
+        - description
+        - icon
+        - active
+        - sort_order
+      additionalProperties: false
+    AdminSpecialtiesPatch:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      type: object
+      properties:
+        name:
+          type: object
+          properties:
+            ru:
+              type: string
+              minLength: 2
+              maxLength: 200
+            en:
+              type: string
+              minLength: 2
+              maxLength: 200
+          required:
+            - ru
+            - en
+          additionalProperties: false
+        description:
+          type: object
+          properties:
+            ru:
+              type: string
+              maxLength: 5000
+            en:
+              type: string
+              maxLength: 5000
+          required:
+            - ru
+            - en
+          additionalProperties: false
+        icon:
+          type: string
+          enum:
+            - medical
+            - heart
+            - brain
+            - skin
+            - eye
+            - scan
+            - child
+            - tooth
+            - bone
+        active:
+          type: boolean
+        sort_order:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        doctor_ids:
+          maxItems: 100
+          type: array
+          items:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+      additionalProperties: false
+    AdminServices:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      type: object
+      properties:
+        name:
+          type: object
+          properties:
+            ru:
+              type: string
+              minLength: 2
+              maxLength: 200
+            en:
+              type: string
+              minLength: 2
+              maxLength: 200
+          required:
+            - ru
+            - en
+          additionalProperties: false
+        description:
+          type: object
+          properties:
+            ru:
+              type: string
+              maxLength: 5000
+            en:
+              type: string
+              maxLength: 5000
+          required:
+            - ru
+            - en
+          additionalProperties: false
+        specialty_id:
+          type: string
+          format: uuid
+          pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        duration_minutes:
+          type: integer
+          minimum: 5
+          maximum: 480
+        price_rub:
+          type: number
+          minimum: 0
+          maximum: 1000000
+          multipleOf: 0.01
+        category_key:
+          type: string
+          pattern: ^[a-z_]{1,40}$
+        category:
+          type: object
+          properties:
+            ru:
+              type: string
+              minLength: 2
+              maxLength: 200
+            en:
+              type: string
+              minLength: 2
+              maxLength: 200
+          required:
+            - ru
+            - en
+          additionalProperties: false
+        active:
+          type: boolean
+        featured:
+          type: boolean
+        sort_order:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        doctor_ids:
+          maxItems: 100
+          type: array
+          items:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+      required:
+        - name
+        - description
+        - specialty_id
+        - duration_minutes
+        - price_rub
+        - category_key
+        - category
+        - active
+        - featured
+        - sort_order
+      additionalProperties: false
+    AdminServicesPatch:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      type: object
+      properties:
+        name:
+          type: object
+          properties:
+            ru:
+              type: string
+              minLength: 2
+              maxLength: 200
+            en:
+              type: string
+              minLength: 2
+              maxLength: 200
+          required:
+            - ru
+            - en
+          additionalProperties: false
+        description:
+          type: object
+          properties:
+            ru:
+              type: string
+              maxLength: 5000
+            en:
+              type: string
+              maxLength: 5000
+          required:
+            - ru
+            - en
+          additionalProperties: false
+        specialty_id:
+          type: string
+          format: uuid
+          pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+        duration_minutes:
+          type: integer
+          minimum: 5
+          maximum: 480
+        price_rub:
+          type: number
+          minimum: 0
+          maximum: 1000000
+          multipleOf: 0.01
+        category_key:
+          type: string
+          pattern: ^[a-z_]{1,40}$
+        category:
+          type: object
+          properties:
+            ru:
+              type: string
+              minLength: 2
+              maxLength: 200
+            en:
+              type: string
+              minLength: 2
+              maxLength: 200
+          required:
+            - ru
+            - en
+          additionalProperties: false
+        active:
+          type: boolean
+        featured:
+          type: boolean
+        sort_order:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        doctor_ids:
+          maxItems: 100
+          type: array
+          items:
+            type: string
+            format: uuid
+            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
+      additionalProperties: false
+    AdminPromotions:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      type: object
+      properties:
+        title:
+          type: object
+          properties:
+            ru:
+              type: string
+              minLength: 2
+              maxLength: 200
+            en:
+              type: string
+              minLength: 2
+              maxLength: 200
+          required:
+            - ru
+            - en
+          additionalProperties: false
+        description:
+          type: object
+          properties:
+            ru:
+              type: string
+              maxLength: 5000
+            en:
+              type: string
+              maxLength: 5000
+          required:
+            - ru
+            - en
+          additionalProperties: false
+        image_url:
+          anyOf:
+            - type: string
+              maxLength: 2000
+              format: uri
+            - type: "null"
+        starts_at:
+          type: string
+          format: date-time
+          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+        ends_at:
+          type: string
+          format: date-time
+          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+        action_kind:
+          anyOf:
+            - type: string
+              enum:
+                - doctors
+                - services
+                - specialties
+            - type: "null"
+        active:
+          type: boolean
+        sort_order:
+          type: integer
+          minimum: 0
+          maximum: 10000
+      required:
+        - title
+        - description
+        - starts_at
+        - ends_at
+        - action_kind
+        - active
+        - sort_order
+      additionalProperties: false
+    AdminPromotionsPatch:
+      $schema: https://json-schema.org/draft/2020-12/schema
+      type: object
+      properties:
+        title:
+          type: object
+          properties:
+            ru:
+              type: string
+              minLength: 2
+              maxLength: 200
+            en:
+              type: string
+              minLength: 2
+              maxLength: 200
+          required:
+            - ru
+            - en
+          additionalProperties: false
+        description:
+          type: object
+          properties:
+            ru:
+              type: string
+              maxLength: 5000
+            en:
+              type: string
+              maxLength: 5000
+          required:
+            - ru
+            - en
+          additionalProperties: false
+        image_url:
+          anyOf:
+            - type: string
+              maxLength: 2000
+              format: uri
+            - type: "null"
+        starts_at:
+          type: string
+          format: date-time
+          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+        ends_at:
+          type: string
+          format: date-time
+          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+        action_kind:
+          anyOf:
+            - type: string
+              enum:
+                - doctors
+                - services
+                - specialties
+            - type: "null"
+        active:
+          type: boolean
+        sort_order:
+          type: integer
+          minimum: 0
+          maximum: 10000
+      additionalProperties: false
+    AdminPage:
+      type: object
+      required:
+        - items
+        - pagination
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+    Availability:
+      type: array
+      items:
+        type: object
+        required:
+          - starts_at
+          - ends_at
+        properties:
+          starts_at:
+            type: string
+            format: date-time
+          ends_at:
+            type: string
+            format: date-time
+    PatientCancel:
+      type: object
+      additionalProperties: false
+      required:
+        - status
+        - expected_updated_at
+      properties:
+        status:
+          const: cancelled
+        expected_updated_at:
+          type: string
+          format: date-time
+  responses:
+    Failure:
+      description: Sanitized error envelope
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+tags:
+  - name: Admin
+    description: Verified staff JWT and active clinic membership required. SUPER_ADMIN access is global; doctor appointment reads are restricted to own doctor identity.
+  - name: Booking
+    description: Verified patient identity. Shared database availability/transaction with staff booking; no client patient identity accepted.
+  - name: Admin
+    description: Verified staff JWT and active clinic membership required. SUPER_ADMIN access is global; doctor appointment reads are restricted to own doctor identity.
+  - name: Booking
+    description: Verified patient identity. Shared database availability/transaction with staff booking; no client patient identity accepted.
