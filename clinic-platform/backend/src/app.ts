@@ -19,6 +19,7 @@ export function createApp(
   catalog?: express.Router,
   admin?: express.Router,
   booking?: express.Router,
+  doctor?: express.Router,
 ) {
   const app = express();
   const log = pino({ enabled: config.NODE_ENV !== "test" });
@@ -39,16 +40,14 @@ export function createApp(
       standardHeaders: "draft-8",
       legacyHeaders: false,
       handler: (_req, res) =>
-        res
-          .status(429)
-          .json({
-            success: false,
-            error: {
-              code: "RATE_LIMITED",
-              message: "Too many requests",
-              details: {},
-            },
-          }),
+        res.status(429).json({
+          success: false,
+          error: {
+            code: "RATE_LIMITED",
+            message: "Too many requests",
+            details: {},
+          },
+        }),
     }),
   );
   app.use(express.json({ limit: "64kb" }));
@@ -68,6 +67,7 @@ export function createApp(
   app.get("/api/v1/clinics/:clinicId/settings", async (req, res) =>
     ok(res, await clinics.settings(clinicIdSchema.parse(req.params.clinicId))),
   );
+  if (doctor) app.use("/api/v1/doctor", doctor);
   if (admin) app.use("/api/v1/admin", admin);
   if (booking) app.use("/api/v1", booking);
   if (catalog) app.use("/api/v1", catalog);
@@ -108,27 +108,25 @@ export function createApp(
         { requestId: res.locals.requestId, method: req.method, status, code },
         "Request failed",
       );
-      res
-        .status(status)
-        .json({
-          success: false,
-          error: {
-            code,
-            message,
-            details: {
-              requestId: res.locals.requestId,
-              ...(error instanceof AppError ? error.details : {}),
-              ...(error instanceof z.ZodError
-                ? {
-                    fields: error.issues.map((i) => ({
-                      path: i.path,
-                      code: i.code,
-                    })),
-                  }
-                : {}),
-            },
+      res.status(status).json({
+        success: false,
+        error: {
+          code,
+          message,
+          details: {
+            requestId: res.locals.requestId,
+            ...(error instanceof AppError ? error.details : {}),
+            ...(error instanceof z.ZodError
+              ? {
+                  fields: error.issues.map((i) => ({
+                    path: i.path,
+                    code: i.code,
+                  })),
+                }
+              : {}),
           },
-        });
+        },
+      });
     },
   );
   return app;

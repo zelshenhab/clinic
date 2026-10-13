@@ -1529,3 +1529,37 @@ footer {
 .button.danger:hover {
   background: #fce2e7;
 }
+
+.doctor-hours {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+  gap: 12px;
+}
+.doctor-timeline-item {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  text-align: left;
+  width: 100%;
+  padding: 16px;
+  margin: 8px 0;
+  border: 1px solid var(--border, #e4ecf4);
+  border-radius: 14px;
+  background: #f7fafd;
+  color: #172b4d;
+}
+.doctor-timeline-item:hover {
+  border-color: #1677d2;
+}
+.status.approved {
+  background: #e6f7ef;
+  color: #187044;
+}
+.status.rejected {
+  background: #fff0f1;
+  color: #b52f43;
+}
+.doctor-hours small {
+  display: block;
+  color: #718096;
+}

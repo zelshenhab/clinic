@@ -17,6 +17,41 @@ const PatientsPage = lazy(
 const SchedulesPage = lazy(() => import("../features/schedules/SchedulesPage"));
 const SettingsPage = lazy(() => import("../features/settings/SettingsPage"));
 const StaffPage = lazy(() => import("../features/staff/StaffPage"));
+const DoctorPages = Object.fromEntries(
+  [
+    "DoctorOverview",
+    "DoctorPatients",
+    "DoctorSchedule",
+    "DoctorNotifications",
+    "DoctorProfile",
+    "DoctorSettings",
+  ].map((name) => [
+    name,
+    lazy(() =>
+      import("../features/doctor/DoctorPages").then((m) => ({
+        default: m[name],
+      })),
+    ),
+  ]),
+);
+function DoctorRoutes() {
+  return (
+    <Routes>
+      <Route index element={<DoctorPages.DoctorOverview />} />
+      <Route path="appointments" element={<AppointmentsPage />} />
+      <Route path="calendar" element={<CalendarPage />} />
+      <Route path="patients" element={<DoctorPages.DoctorPatients />} />
+      <Route path="schedules" element={<DoctorPages.DoctorSchedule />} />
+      <Route
+        path="notifications"
+        element={<DoctorPages.DoctorNotifications />}
+      />
+      <Route path="profile" element={<DoctorPages.DoctorProfile />} />
+      <Route path="settings" element={<DoctorPages.DoctorSettings />} />
+      <Route path="*" element={<Failure error={{ code: "NOT_FOUND" }} />} />
+    </Routes>
+  );
+}
 function Permit({ operation, children }) {
   const { clinic, access } = useClinic();
   if (!allowed(access?.role, operation))
@@ -24,6 +59,15 @@ function Permit({ operation, children }) {
   return <div key={clinic.id}>{children}</div>;
 }
 export function ManagementRoutes() {
+  const { access, clinic } = useClinic();
+  if (access?.role === "DOCTOR")
+    return (
+      <Suspense fallback={<Skeleton />}>
+        <div key={clinic.id}>
+          <DoctorRoutes />
+        </div>
+      </Suspense>
+    );
   return (
     <Suspense fallback={<Skeleton />}>
       <Routes>

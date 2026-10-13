@@ -1,3 +1,4 @@
+import { doctorRoutes } from "../../src/modules/doctor/routes.js";
 // Isolated browser QA only. Never imported by the production server.
 import { PGlite } from "@electric-sql/pglite";
 import { btree_gist } from "@electric-sql/pglite/contrib/btree_gist";
@@ -81,19 +82,88 @@ for (const { id: clinic } of (
     }
   }
 }
+const doctorActor = "10000000-0000-4000-8000-000000000003";
+const doctorToken =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9." +
+  Buffer.from(
+    JSON.stringify({
+      sub: doctorActor,
+      role: "authenticated",
+      exp: 4102444800,
+    }),
+  ).toString("base64url") +
+  ".testsignature";
+await db.query("insert into auth.users(id) values($1)", [doctorActor]);
+const assigned = (
+  await db.query<any>(
+    "select doctor_id from public.doctor_clinics order by clinic_id,sort_order limit 1",
+  )
+).rows[0].doctor_id;
+await db.query(
+  "insert into public.doctor_clinics(clinic_id,doctor_id) select id,$1 from public.clinics on conflict(clinic_id,doctor_id) do nothing",
+  [assigned],
+);
+await db.query(
+  "insert into public.staff_memberships(user_id,clinic_id,role,doctor_id) select $1,clinic_id,'DOCTOR',doctor_id from public.doctor_clinics where doctor_id=$2",
+  [doctorActor, assigned],
+);
+// An actual future booking for the doctor test account.
+const dc = (
+  await db.query<any>(
+    "select clinic_id from public.doctor_clinics where doctor_id=$1 order by clinic_id limit 1",
+    [assigned],
+  )
+).rows[0].clinic_id;
+const svc = (
+  await db.query<any>(
+    "select service_id from public.doctor_services where clinic_id=$1 and doctor_id=$2 and active limit 1",
+    [dc, assigned],
+  )
+).rows[0].service_id;
+for (let offset = 1; offset < 8; offset++) {
+  const day = (
+    await db.query<any>("select (current_date+$1::integer)::text as day", [
+      offset,
+    ])
+  ).rows[0].day;
+  const slots = (
+    await db.query<any>(
+      "select public.admin_availability($1,$2,$3,$4,$5) slots",
+      [actor, dc, assigned, svc, day],
+    )
+  ).rows[0].slots;
+  if (slots.length) {
+    await db.query("select public.admin_book($1,$2,$3)", [
+      actor,
+      dc,
+      JSON.stringify({
+        patient_id: patient,
+        doctor_id: assigned,
+        service_id: svc,
+        starts_at: slots[0].starts_at,
+      }),
+    ]);
+    break;
+  }
+}
 const fake = {
   auth: {
     getUser: async (value: string) => ({
       data: {
         user:
-          value === token ? { id: actor, email: "qa@example.invalid" } : null,
+          value === token
+            ? { id: actor, email: "qa@example.invalid" }
+            : value === doctorToken
+              ? { id: doctorActor, email: "doctor@example.invalid" }
+              : null,
       },
-      error: value === token ? null : { status: 401 },
+      error: [token, doctorToken].includes(value) ? null : { status: 401 },
     }),
   },
   rpc: async (name: string, args: Record<string, unknown>) => {
     try {
-      if (!/^admin_[a-z_]+$/.test(name)) throw Error("Unsupported test RPC");
+      if (!/^(admin|doctor)_[a-z_]+$/.test(name))
+        throw Error("Unsupported test RPC");
       const keys = Object.keys(args);
       const sql = `select public.${name}(${keys.map((key, i) => `${key}=>$${i + 1}`).join(",")}) as data`;
       const result = await db.query<any>(
@@ -162,6 +232,8 @@ const app = createApp(
   undefined,
   undefined,
   adminRoutes(fake),
+  undefined,
+  doctorRoutes(fake),
 );
 const server = app.listen(3011, "127.0.0.1", () =>
   console.log("Browser QA API ready on 3011"),

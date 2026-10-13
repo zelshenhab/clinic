@@ -43,6 +43,16 @@ const navigation = [
   ["staff", "staff", UserCog, "staff"],
   ["settings", "settings", Settings, "settings"],
 ];
+const doctorNavigation = [
+  ["doctorOverview", "", LayoutDashboard, "overview"],
+  ["myAppointments", "appointments", CalendarDays, "appointments"],
+  ["myCalendar", "calendar", Calendar, "calendar"],
+  ["myPatients", "patients", Users, "doctorWorkspace"],
+  ["mySchedule", "schedules", Clock, "schedules"],
+  ["notifications", "notifications", Bell, "doctorWorkspace"],
+  ["myProfile", "profile", UserCog, "doctorWorkspace"],
+  ["doctorSettings", "settings", Settings, "doctorWorkspace"],
+];
 export default function Layout() {
   const { t, text, locale, change } = useLocale(),
     { clinic, clinics, access, select, error, loading, retry } = useClinic(),
@@ -53,8 +63,10 @@ export default function Layout() {
     [notifications, setNotifications] = useState(false),
     [profile, setProfile] = useState(false);
   const realtime = useAppointmentRealtime();
+  const navigationItems =
+    access?.role === "DOCTOR" ? doctorNavigation : navigation;
   const page =
-    navigation.find((n) => n[1] === location.pathname.slice(1))?.[0] ||
+    navigationItems.find((n) => n[1] === location.pathname.slice(1))?.[0] ||
     "overview";
   if (loading) return <Skeleton />;
   if (error) return <Failure error={error} retry={retry} />;
@@ -73,9 +85,11 @@ export default function Layout() {
           </span>
           {t("brand")}
         </NavLink>
-        <div className="workspace-caption">{t("staffWorkspace")}</div>
+        <div className="workspace-caption">
+          {t(access?.role === "DOCTOR" ? "doctorWorkspace" : "staffWorkspace")}
+        </div>
         <nav>
-          {navigation
+          {navigationItems
             .filter((n) => allowed(access?.role, n[3]))
             .map(([label, path, Icon]) => (
               <NavLink
@@ -103,7 +117,9 @@ export default function Layout() {
           <button
             className="mobile-toggle icon-button"
             onClick={() => setOpen(true)}
-            aria-label={t("staffWorkspace")}
+            aria-label={t(
+              access?.role === "DOCTOR" ? "doctorWorkspace" : "staffWorkspace",
+            )}
           >
             <Menu />
           </button>
@@ -152,7 +168,11 @@ export default function Layout() {
                   ) : (
                     realtime.events.map((e) => (
                       <p key={e.id}>
-                        {t("appointmentsUpdated")}
+                        {t(
+                          e.kind === "request"
+                            ? "requestsUpdated"
+                            : "appointmentsUpdated",
+                        )}
                         <small>
                           {clinicDate(e.at, clinic.timezone, locale)}
                         </small>
@@ -216,7 +236,9 @@ export default function Layout() {
             <ManagementRoutes />
           </div>
           <footer>
-            {t("staffWorkspace")}
+            {t(
+              access?.role === "DOCTOR" ? "doctorWorkspace" : "staffWorkspace",
+            )}
             <span>{text(clinic.name)}</span>
           </footer>
         </main>

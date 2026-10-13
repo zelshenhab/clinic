@@ -1,3 +1,4 @@
+import WorkingHours from "../doctor/WorkingHours";
 import { calendarLanes } from "../../utils/calendarLayout";
 import { useState } from "react";
 import { DateTime } from "luxon";
@@ -14,7 +15,7 @@ import {
 } from "../../components/Shared";
 import AppointmentDetail from "./AppointmentDetail";
 export default function CalendarPage() {
-  const { clinic } = useClinic(),
+  const { clinic, access } = useClinic(),
     { t, text, locale } = useLocale();
   const [view, setView] = useState("week"),
     [day, setDay] = useState(() => clinicNow(clinic.timezone).toISODate()),
@@ -43,7 +44,7 @@ export default function CalendarPage() {
   return (
     <>
       <PageHeader
-        title={t("calendar")}
+        title={t(access.role === "DOCTOR" ? "myCalendar" : "calendar")}
         subtitle={t("clinicTimezone") + ": " + clinic.timezone}
       />
       <div className="calendar-toolbar">
@@ -75,18 +76,20 @@ export default function CalendarPage() {
           </strong>
         </div>
         <div className="action-row">
-          <select
-            aria-label={t("doctor")}
-            value={doctor}
-            onChange={(e) => setDoctor(e.target.value)}
-          >
-            <option value="">{t("allDoctors")}</option>
-            {options.data?.doctors.map((d) => (
-              <option value={d.id} key={d.id}>
-                {text(d.name)}
-              </option>
-            ))}
-          </select>
+          {access.role !== "DOCTOR" && (
+            <select
+              aria-label={t("doctor")}
+              value={doctor}
+              onChange={(e) => setDoctor(e.target.value)}
+            >
+              <option value="">{t("allDoctors")}</option>
+              {options.data?.doctors.map((d) => (
+                <option value={d.id} key={d.id}>
+                  {text(d.name)}
+                </option>
+              ))}
+            </select>
+          )}
           <div className="segmented">
             {["day", "week", "month"].map((v) => (
               <button
@@ -106,6 +109,7 @@ export default function CalendarPage() {
       <QueryState query={query}>
         {(data) => (
           <>
+            {access.role === "DOCTOR" && <WorkingHours data={data.schedule} />}
             {data.truncated && (
               <div className="notice">{t("calendarLimit")}</div>
             )}
@@ -187,7 +191,7 @@ export default function CalendarPage() {
   );
 }
 function Event({ record, onClick, style }) {
-  const { clinic } = useClinic(),
+  const { clinic, access } = useClinic(),
     { text, locale } = useLocale();
   return (
     <button

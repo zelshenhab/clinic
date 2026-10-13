@@ -14,6 +14,7 @@ export const allowed = (role, operation) =>
   role === "SUPER_ADMIN" ||
   (
     {
+      doctorWorkspace: ["DOCTOR"],
       overview: ["CLINIC_ADMIN", "RECEPTIONIST", "DOCTOR"],
       appointments: ["CLINIC_ADMIN", "RECEPTIONIST", "DOCTOR"],
       calendar: ["CLINIC_ADMIN", "RECEPTIONIST", "DOCTOR"],

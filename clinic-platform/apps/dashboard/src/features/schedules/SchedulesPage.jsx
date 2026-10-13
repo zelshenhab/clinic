@@ -1,3 +1,5 @@
+import RequestReview from "../doctor/RequestReview";
+import { useDoctorMutation } from "../../hooks/useDoctor";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { scheduleFormSchema } from "../../utils/formSchemas";
 import { useState } from "react";
@@ -62,6 +64,9 @@ export default function SchedulesPage() {
           )}
         </QueryState>
       )}
+      {["SUPER_ADMIN", "CLINIC_ADMIN"].includes(access.role) && (
+        <RequestReview />
+      )}
     </>
   );
 }
@@ -114,10 +119,12 @@ function Breaks({ index, form }) {
     </fieldset>
   );
 }
-function ScheduleEditor({ doctor, data }) {
+export function ScheduleEditor({ doctor, data, requestMode = false }) {
   const { t, locale } = useLocale(),
     { clinic, access } = useClinic(),
-    editable = ["SUPER_ADMIN", "CLINIC_ADMIN"].includes(access.role),
+    editable =
+      requestMode || ["SUPER_ADMIN", "CLINIC_ADMIN"].includes(access.role),
+    [reason, setReason] = useState(""),
     [conflict, setConflict] = useState(null);
   const form = useForm({
       resolver: zodResolver(scheduleFormSchema),
@@ -137,7 +144,9 @@ function ScheduleEditor({ doctor, data }) {
     }),
     weekly = useFieldArray({ control: form.control, name: "weekly" }),
     exceptions = useFieldArray({ control: form.control, name: "exceptions" }),
-    mutation = useAdminMutation("doctors/" + doctor + "/schedules", "put");
+    adminMutation = useAdminMutation("doctors/" + doctor + "/schedules", "put"),
+    requestMutation = useDoctorMutation("schedule-change-requests"),
+    mutation = requestMode ? requestMutation : adminMutation;
   const weekdays = Array.from({ length: 7 }, (_, i) => [
     i,
     new Intl.DateTimeFormat(locale, {
@@ -149,8 +158,8 @@ function ScheduleEditor({ doctor, data }) {
     <form
       className="stack-form panel"
       noValidate
-      onSubmit={form.handleSubmit((v) =>
-        mutation.mutate({
+      onSubmit={form.handleSubmit((v) => {
+        const payload = {
           weekly: v.weekly.map((s) => ({
             weekday: s.weekday,
             starts_at: s.start,
@@ -162,9 +171,31 @@ function ScheduleEditor({ doctor, data }) {
             starts_at: toInstant(e.starts_at, clinic.timezone),
             ends_at: toInstant(e.ends_at, clinic.timezone),
           })),
-        }),
-      )}
+        };
+        if (requestMode) {
+          if (reason.trim().length < 5) {
+            form.setError("root", { message: "fieldInvalid" });
+            return;
+          }
+          mutation.mutate({ kind: "schedule", payload, reason });
+        } else mutation.mutate(payload);
+      })}
     >
+      {requestMode && (
+        <label>
+          {t("requestReason")}
+          <textarea
+            aria-label={t("requestReason")}
+            value={reason}
+            maxLength={2000}
+            onChange={(e) => setReason(e.target.value)}
+          />
+          {form.formState.errors.root && (
+            <small className="field-error">{t("fieldInvalid")}</small>
+          )}
+          <small>{t("approvalRequired")}</small>
+        </label>
+      )}
       <p className="fine-print">
         {t("clinicTimezone")}: {clinic.timezone}. {t("bookingDurationHelp")}
       </p>
@@ -302,7 +333,11 @@ function ScheduleEditor({ doctor, data }) {
           ))}
         </>
       )}
-      {editable && <Submit busy={mutation.isPending} />}{" "}
+      {editable && (
+        <Submit busy={mutation.isPending}>
+          {t(requestMode ? "submitRequest" : "save")}
+        </Submit>
+      )}{" "}
       {conflict && (
         <AppointmentDetail id={conflict} onClose={() => setConflict(null)} />
       )}

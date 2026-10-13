@@ -29,3 +29,9 @@ Shared SQL availability, booking, rescheduling and cancellation now serve staff 
 Implemented locally: RU/EN staff authentication, authorized clinic selection, overview and analytics, appointments, day/week/month calendar, doctors, specialties, services, promotions, patients, schedules, clinic settings, staff management and global booking settings. Backend membership checks, tenant SQL predicates, shared booking transactions, private Realtime audiences, uploads and audits accompany the interface. See [delivery and verification](phase-5.md).
 
 Acceptance remains pending live Supabase Auth, invitations, Storage and private Realtime verification. Hosting and server configuration are explicitly deferred at the user's request. No deployment or production-completeness claim is made.
+
+## Phase 5 doctor extension
+
+Implemented: dedicated doctor workspace in the existing dashboard, server-derived doctor identity, own appointment/calendar/patient/profile reads, real SQL statistics, safe status actions, durable notifications and clinic-scoped private updates. Added schedule/day-off/vacation/rescheduling requests with administrator review, atomic conflict checks and stale schedule protection. See [doctor delivery](phase-5-doctor.md).
+
+Verified locally through migrated SQL, HTTP/UI tests, browser doctor/admin workflows, production builds and Flutter regressions. Migration 007 and real doctor staff assignments still need application/provisioning on the hosted project; live provider and mobile booking acceptance are not claimed complete.

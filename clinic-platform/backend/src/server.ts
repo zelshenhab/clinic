@@ -1,3 +1,4 @@
+import { doctorRoutes } from "./modules/doctor/routes.js";
 import { bookingRoutes } from "./modules/appointments/routes.js";
 import { adminRoutes } from "./modules/admin/routes.js";
 import { createApp } from "./app.js";
@@ -27,6 +28,7 @@ const server = createApp(
   catalogRoutes(db),
   adminRoutes(db),
   bookingRoutes(db),
+  doctorRoutes(db),
 ).listen(config.PORT);
 for (const signal of ["SIGTERM", "SIGINT"])
   process.on(signal, () => {

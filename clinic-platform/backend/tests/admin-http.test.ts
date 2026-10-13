@@ -1,3 +1,4 @@
+import { doctorRoutes } from "../src/modules/doctor/routes.js";
 import { it, expect, vi } from "vitest";
 import request from "supertest";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -58,6 +59,7 @@ function fixture(role: string = "RECEPTIONIST") {
       undefined,
       adminRoutes(db),
       bookingRoutes(db),
+      doctorRoutes(db),
     ),
   };
 }
@@ -171,4 +173,91 @@ it("never accepts a patient identity supplied to the patient booking endpoint", 
     p_actor: actor,
     p_clinic: clinic,
   });
+});
+
+it("doctor routes derive identity and reject injected identity filters and foreign clinics", async () => {
+  const { app, rpc } = fixture("DOCTOR");
+  const own = await request(app)
+    .get("/api/v1/doctor/appointments")
+    .query({ clinic_id: clinic })
+    .set("Authorization", "Bearer verified");
+  expect(own.status).toBe(200);
+  expect(rpc).toHaveBeenCalledWith(
+    "doctor_read",
+    expect.objectContaining({
+      p_actor: actor,
+      p_clinic: clinic,
+      p_resource: "appointments",
+    }),
+  );
+  expect(
+    (
+      await request(app)
+        .get("/api/v1/doctor/appointments")
+        .query({ clinic_id: clinic, doctor_id: doctor })
+        .set("Authorization", "Bearer verified")
+    ).status,
+  ).toBe(400);
+  expect(
+    (
+      await request(app)
+        .get("/api/v1/doctor/appointments")
+        .query({ clinic_id: other })
+        .set("Authorization", "Bearer verified")
+    ).status,
+  ).toBe(403);
+});
+it("doctor HTTP rejects direct cancellation and malformed schedule requests", async () => {
+  const { app, rpc } = fixture("DOCTOR");
+  expect(
+    (
+      await request(app)
+        .patch(`/api/v1/doctor/appointments/${service}/status`)
+        .set("Authorization", "Bearer verified")
+        .send({
+          clinic_id: clinic,
+          status: "cancelled",
+          expected_updated_at: new Date().toISOString(),
+        })
+    ).status,
+  ).toBe(400);
+  expect(
+    (
+      await request(app)
+        .post("/api/v1/doctor/schedule-change-requests")
+        .set("Authorization", "Bearer verified")
+        .send({
+          clinic_id: clinic,
+          kind: "schedule",
+          reason: "Change my hours",
+          payload: {
+            weekly: [
+              { weekday: 1, starts_at: "12:00", ends_at: "10:00", breaks: [] },
+            ],
+            exceptions: [],
+          },
+        })
+    ).status,
+  ).toBe(400);
+  expect(rpc).not.toHaveBeenCalled();
+});
+it("receptionist cannot access doctor routes or approve schedule requests", async () => {
+  const { app, rpc } = fixture("RECEPTIONIST");
+  expect(
+    (
+      await request(app)
+        .get("/api/v1/doctor/me")
+        .query({ clinic_id: clinic })
+        .set("Authorization", "Bearer verified")
+    ).status,
+  ).toBe(403);
+  expect(
+    (
+      await request(app)
+        .patch(`/api/v1/admin/clinics/${clinic}/doctor-requests/${service}`)
+        .set("Authorization", "Bearer verified")
+        .send({ approve: true, note: "" })
+    ).status,
+  ).toBe(403);
+  expect(rpc).not.toHaveBeenCalled();
 });

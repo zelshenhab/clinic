@@ -5,6 +5,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useAppointmentRealtime } from "./useAppointmentRealtime";
 const state = vi.hoisted(() => ({
   clinic: "clinic-a",
+  role: "CLINIC_ADMIN",
+  doctor: null,
+  handlers: {},
   payload: null,
   status: null,
   remove: vi.fn(),
@@ -18,7 +21,7 @@ vi.mock("../contexts/AuthContext", () => ({
 vi.mock("../contexts/ClinicContext", () => ({
   useClinic: () => ({
     clinic: { id: state.clinic },
-    access: { role: "CLINIC_ADMIN" },
+    access: { role: state.role, doctor_id: state.doctor },
   }),
 }));
 vi.mock("../services/supabase", () => ({
@@ -28,6 +31,7 @@ vi.mock("../services/supabase", () => ({
       state.channels.push({ name, config });
       const channel = {
         on: (_type, _event, callback) => {
+          state.handlers[_event.event] = callback;
           state.payload = callback;
           return channel;
         },
@@ -75,5 +79,47 @@ it("deduplicates minimal events, invalidates only its clinic, refetches on recon
   });
   hook.unmount();
   expect(state.remove).toHaveBeenCalledTimes(2);
+  client.clear();
+});
+
+it("doctor appointment and request events use the private user topic and reset on identity change", async () => {
+  state.clinic = "clinic-a";
+  state.role = "DOCTOR";
+  state.doctor = "doctor-a";
+  const client = new QueryClient(),
+    invalidate = vi.spyOn(client, "invalidateQueries"),
+    wrapper = ({ children }) => (
+      <QueryClientProvider client={client}>{children}</QueryClientProvider>
+    );
+  const hook = renderHook(() => useAppointmentRealtime(), { wrapper });
+  await waitFor(() =>
+    expect(state.handlers.appointment_changed).toBeTypeOf("function"),
+  );
+  expect(state.channels.at(-1)).toEqual({
+    name: "staff:clinic-a:staff",
+    config: { config: { private: true } },
+  });
+  act(() =>
+    state.handlers.appointment_changed({
+      payload: { clinic_id: "clinic-a", event_id: "new-appointment" },
+    }),
+  );
+  act(() =>
+    state.handlers.doctor_request_changed({
+      payload: {
+        clinic_id: "clinic-a",
+        event_id: "review-result",
+        request_id: "request-a",
+      },
+    }),
+  );
+  await waitFor(() => expect(hook.result.current.events).toHaveLength(2));
+  expect(hook.result.current.events[0].kind).toBe("request");
+  await new Promise((r) => setTimeout(r, 175));
+  expect(invalidate).toHaveBeenCalledWith({ queryKey: ["clinic", "clinic-a"] });
+  state.doctor = "doctor-b";
+  hook.rerender();
+  await waitFor(() => expect(hook.result.current.events).toHaveLength(0));
+  hook.unmount();
   client.clear();
 });

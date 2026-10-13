@@ -26,3 +26,5 @@ See [architecture](docs/architecture.md), [security](docs/security.md), and [API
 [Phase 3 delivery and limitations](docs/phase-3.md) · [Catalog API guide](docs/catalog-api.md) · [Phase 3 file inventory](docs/phase-3-files.md)
 
 [Phase 5 delivery and local verification](docs/phase-5.md). Hosting and server setup are deferred in the current scope.
+
+[Phase 5 doctor workspace](docs/phase-5-doctor.md): private doctor appointments, patients, calendar, requests and administrator approval. Apply incremental migration 007 after the existing schema before using these routes.

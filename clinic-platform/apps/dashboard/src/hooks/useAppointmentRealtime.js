@@ -20,6 +20,30 @@ export function useAppointmentRealtime() {
     const invalidate = () => {
       if (active) client.invalidateQueries({ queryKey: ["clinic", id] });
     };
+    const receive = ({ payload }) => {
+      if (
+        !active ||
+        payload?.clinic_id !== id ||
+        !payload?.event_id ||
+        seen.current.has(payload.event_id)
+      )
+        return;
+      seen.current.add(payload.event_id);
+      if (seen.current.size > 500)
+        seen.current.delete(seen.current.values().next().value);
+      setEvents((v) =>
+        [
+          {
+            id: payload.event_id,
+            at: new Date().toISOString(),
+            kind: payload.request_id ? "request" : "appointment",
+          },
+          ...v,
+        ].slice(0, 8),
+      );
+      clearTimeout(timer);
+      timer = setTimeout(invalidate, 150);
+    };
     let channel;
     (async () => {
       await supabase.realtime.setAuth(session.access_token);
@@ -28,26 +52,8 @@ export function useAppointmentRealtime() {
         .channel(`staff:${id}:${session.user.id}`, {
           config: { private: true },
         })
-        .on("broadcast", { event: "appointment_changed" }, ({ payload }) => {
-          if (
-            !active ||
-            payload?.clinic_id !== id ||
-            !payload?.event_id ||
-            seen.current.has(payload.event_id)
-          )
-            return;
-          seen.current.add(payload.event_id);
-          if (seen.current.size > 500)
-            seen.current.delete(seen.current.values().next().value);
-          setEvents((v) =>
-            [
-              { id: payload.event_id, at: new Date().toISOString() },
-              ...v,
-            ].slice(0, 8),
-          );
-          clearTimeout(timer);
-          timer = setTimeout(invalidate, 150);
-        })
+        .on("broadcast", { event: "appointment_changed" }, receive)
+        .on("broadcast", { event: "doctor_request_changed" }, receive)
         .subscribe((state) => {
           if (!active) return;
           setStatus(

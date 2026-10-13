@@ -15,3 +15,7 @@ Catalog uploads accept bounded JPEG/PNG/WebP files, decode and re-encode with Sh
 Failures expose stable codes, safe field details and request IDs. Logs exclude tokens, request bodies, phone numbers and raw database errors. Test-only authentication adapters are confined to tests/support and are guarded by NODE_ENV=test; production imports no bypass.
 
 Local SQL, HTTP, binary upload and UI tests provide evidence for these controls. Live Auth/email delivery, Storage, Realtime, multi-client load behavior and operational controls have not been certified by those tests.
+
+Doctor extension controls: doctor_id is derived from verified active account/clinic assignments and is rejected in doctor query/body schemas. Own SQL predicates protect all appointments, patient relationships, calendar events and statistics, including dual-role accounts. Patient lists omit contact information; the patient's phone is permitted only in operational own-appointment details. Medical records and clinical notes remain unavailable.
+
+New change-request tables use default-deny RLS with no browser-role grants; privileged RPCs are service-only. Doctor requests cannot immediately change availability. Only authorized administrators review, and requesters cannot approve themselves. Approval revalidates current doctor access, schedule baselines, booking versions and conflicts atomically. Private request events contain identifiers only and target current authorized recipients. Active account linking validates clinic assignment and consistent doctor identity across clinics.

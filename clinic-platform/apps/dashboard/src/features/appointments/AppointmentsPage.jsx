@@ -78,7 +78,7 @@ export default function AppointmentsPage() {
   return (
     <>
       <PageHeader
-        title={t("appointments")}
+        title={t(access.role === "DOCTOR" ? "myAppointments" : "appointments")}
         subtitle={t("bookingHelp")}
         actions={
           allowed(access.role, "book") && (
@@ -92,6 +92,40 @@ export default function AppointmentsPage() {
       <section className="panel">
         {options.error && (
           <Failure error={options.error} retry={options.refetch} />
+        )}
+        {access.role === "DOCTOR" && (
+          <div className="segmented">
+            {["today", "tomorrow", "thisWeek", "customRange"].map((p) => (
+              <button
+                key={p}
+                onClick={() => {
+                  const now = DateTime.now().setZone(clinic.timezone),
+                    start =
+                      p === "thisWeek"
+                        ? now.startOf("week")
+                        : p === "tomorrow"
+                          ? now.plus({ days: 1 }).startOf("day")
+                          : now.startOf("day");
+                  setFilters((v) => {
+                    const { from, to, ...rest } = v;
+                    return p === "customRange"
+                      ? rest
+                      : {
+                          ...rest,
+                          from: start.toUTC().toISO(),
+                          to: start
+                            .plus({ days: p === "thisWeek" ? 7 : 1 })
+                            .toUTC()
+                            .toISO(),
+                        };
+                  });
+                  setPage(1);
+                }}
+              >
+                {t(p)}
+              </button>
+            ))}
+          </div>
         )}
         <div className="filter-grid">
           <label className="search-input">
@@ -120,32 +154,36 @@ export default function AppointmentsPage() {
               ),
             )}
           </select>
-          <select
-            aria-label={t("doctor")}
-            value={filters.doctor_id || ""}
-            onChange={(e) => filter("doctor_id", e.target.value)}
-          >
-            <option value="">{t("allDoctors")}</option>
-            {options.data?.doctors.map((d) => (
-              <option key={d.id} value={d.id}>
-                {text(d.name)}
+          {access.role !== "DOCTOR" && (
+            <select
+              aria-label={t("doctor")}
+              value={filters.doctor_id || ""}
+              onChange={(e) => filter("doctor_id", e.target.value)}
+            >
+              <option value="">{t("allDoctors")}</option>
+              {options.data?.doctors.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {text(d.name)}
+                </option>
+              ))}
+            </select>
+          )}
+          {access.role !== "DOCTOR" && (
+            <select
+              aria-label={t("specialty")}
+              value={filters.specialty_id || ""}
+              onChange={(e) => filter("specialty_id", e.target.value)}
+            >
+              <option value="">
+                {t("specialty")}: {t("all")}
               </option>
-            ))}
-          </select>
-          <select
-            aria-label={t("specialty")}
-            value={filters.specialty_id || ""}
-            onChange={(e) => filter("specialty_id", e.target.value)}
-          >
-            <option value="">
-              {t("specialty")}: {t("all")}
-            </option>
-            {options.data?.specialties.map((s) => (
-              <option key={s.id} value={s.id}>
-                {text(s.name)}
-              </option>
-            ))}
-          </select>
+              {options.data?.specialties.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {text(s.name)}
+                </option>
+              ))}
+            </select>
+          )}
           <select
             aria-label={t("service")}
             value={filters.service_id || ""}
@@ -214,7 +252,35 @@ export default function AppointmentsPage() {
         <QueryState query={query}>
           {(data) => (
             <>
-              <DataTable rows={data.items} columns={columns} />
+              <DataTable
+                rows={data.items}
+                columns={
+                  access.role === "DOCTOR"
+                    ? [
+                        columns[1],
+                        {
+                          key: "appointmentDate",
+                          render: (r) =>
+                            DateTime.fromISO(r.starts_at)
+                              .setZone(clinic.timezone)
+                              .setLocale(locale)
+                              .toLocaleString(DateTime.DATE_MED),
+                        },
+                        {
+                          key: "appointmentTime",
+                          render: (r) =>
+                            DateTime.fromISO(r.starts_at)
+                              .setZone(clinic.timezone)
+                              .toFormat("HH:mm"),
+                        },
+                        columns[5],
+                        columns[7],
+                        columns[0],
+                        columns[9],
+                      ]
+                    : columns
+                }
+              />
               <Pagination value={data.pagination} onPage={setPage} />
             </>
           )}

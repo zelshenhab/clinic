@@ -92,7 +92,10 @@ paths:
   /api/v1/clinics/{clinicId}/doctors:
     get:
       summary: Clinic doctors
-      description: Only active public catalog records in the selected clinic. Lists return data.items plus pagination; prices are RUB. Promotion reads include only active time-window records. Strict queries reject unknown parameter names. Name search matches RU and EN; locale controls name sorting. featured sorting uses configured sort_order; it does not remove non-featured list rows.
+      description: Only active public catalog records in the selected clinic. Lists return data.items plus
+        pagination; prices are RUB. Promotion reads include only active time-window records. Strict queries
+        reject unknown parameter names. Name search matches RU and EN; locale controls name sorting. featured
+        sorting uses configured sort_order; it does not remove non-featured list rows.
       responses:
         "200":
           description: Successful operation
@@ -181,7 +184,10 @@ paths:
   /api/v1/clinics/{clinicId}/specialties:
     get:
       summary: Clinic specialties
-      description: Only active public catalog records in the selected clinic. Lists return data.items plus pagination; prices are RUB. Promotion reads include only active time-window records. Strict queries reject unknown parameter names. Name search matches RU and EN; locale controls name sorting. featured sorting uses configured sort_order; it does not remove non-featured list rows.
+      description: Only active public catalog records in the selected clinic. Lists return data.items plus
+        pagination; prices are RUB. Promotion reads include only active time-window records. Strict queries
+        reject unknown parameter names. Name search matches RU and EN; locale controls name sorting. featured
+        sorting uses configured sort_order; it does not remove non-featured list rows.
       responses:
         "200":
           description: Successful operation
@@ -386,7 +392,8 @@ paths:
   /api/v1/clinics/{clinicId}/doctors/{doctorId}:
     get:
       summary: Clinic doctor detail
-      description: Related records are bounded paginated collections. Schedule overview is not appointment availability. Clinic-specific assignment metadata and service prices are used.
+      description: Related records are bounded paginated collections. Schedule overview is not appointment
+        availability. Clinic-specific assignment metadata and service prices are used.
       responses:
         "200":
           description: Successful operation
@@ -454,7 +461,8 @@ paths:
   /api/v1/clinics/{clinicId}/specialties/{specialtyId}:
     get:
       summary: Clinic specialty detail
-      description: Related records are bounded paginated collections. Schedule overview is not appointment availability. Clinic-specific assignment metadata and service prices are used.
+      description: Related records are bounded paginated collections. Schedule overview is not appointment
+        availability. Clinic-specific assignment metadata and service prices are used.
       responses:
         "200":
           description: Successful operation
@@ -522,7 +530,10 @@ paths:
   /api/v1/clinics/{clinicId}/services:
     get:
       summary: Clinic services
-      description: Only active public catalog records in the selected clinic. Lists return data.items plus pagination; prices are RUB. Promotion reads include only active time-window records. Strict queries reject unknown parameter names. Name search matches RU and EN; locale controls name sorting. featured sorting uses configured sort_order; it does not remove non-featured list rows.
+      description: Only active public catalog records in the selected clinic. Lists return data.items plus
+        pagination; prices are RUB. Promotion reads include only active time-window records. Strict queries
+        reject unknown parameter names. Name search matches RU and EN; locale controls name sorting. featured
+        sorting uses configured sort_order; it does not remove non-featured list rows.
       responses:
         "200":
           description: Successful operation
@@ -616,7 +627,8 @@ paths:
   /api/v1/clinics/{clinicId}/services/{serviceId}:
     get:
       summary: Clinic service detail
-      description: Related records are bounded paginated collections. Schedule overview is not appointment availability. Clinic-specific assignment metadata and service prices are used.
+      description: Related records are bounded paginated collections. Schedule overview is not appointment
+        availability. Clinic-specific assignment metadata and service prices are used.
       responses:
         "200":
           description: Successful operation
@@ -684,7 +696,10 @@ paths:
   /api/v1/clinics/{clinicId}/promotions:
     get:
       summary: Clinic promotions
-      description: Only active public catalog records in the selected clinic. Lists return data.items plus pagination; prices are RUB. Promotion reads include only active time-window records. Strict queries reject unknown parameter names. Name search matches RU and EN; locale controls name sorting. featured sorting uses configured sort_order; it does not remove non-featured list rows.
+      description: Only active public catalog records in the selected clinic. Lists return data.items plus
+        pagination; prices are RUB. Promotion reads include only active time-window records. Strict queries
+        reject unknown parameter names. Name search matches RU and EN; locale controls name sorting. featured
+        sorting uses configured sort_order; it does not remove non-featured list rows.
       responses:
         "200":
           description: Successful operation
@@ -738,7 +753,8 @@ paths:
   /api/v1/clinics/{clinicId}/home:
     get:
       summary: Bounded clinic home catalog
-      description: Four current promotions, six specialties, three featured doctors and four featured services at most. Empty featured lists are legitimate empty sections. No availability slots are generated.
+      description: Four current promotions, six specialties, three featured doctors and four featured services at
+        most. Empty featured lists are legitimate empty sections. No availability slots are generated.
       responses:
         "200":
           description: Successful operation
@@ -786,7 +802,9 @@ paths:
   /api/v1/clinics/{clinicId}/booking-context:
     get:
       summary: Validate Phase 4 booking selections
-      description: Read-only preparation. Checks clinic existence, assignment/service/specialty membership and doctor/service compatibility. Does not create appointments or calculate availability. online_booking_enabled is always false in Phase 3.
+      description: Read-only preparation. Checks clinic existence, assignment/service/specialty membership and
+        doctor/service compatibility. Does not create appointments or calculate availability.
+        online_booking_enabled is always false in Phase 3.
       responses:
         "200":
           description: Successful operation
@@ -849,7 +867,8 @@ paths:
   /api/v1/me/notifications:
     get:
       summary: Latest 50 notifications for verified user and clinic
-      description: Verified bearer identity controls recipient, clinic UUID controls tenancy. No demo notifications or mark-as-read mutation.
+      description: Verified bearer identity controls recipient, clinic UUID controls tenancy. No demo notifications
+        or mark-as-read mutation.
       responses:
         "200":
           description: Successful operation
@@ -1655,7 +1674,8 @@ paths:
       tags:
         - Admin
       summary: Invite new identity or link an authorized existing profile
-      description: CLINIC_ADMIN or RECEPTIONIST can link existing same-clinic profiles; SUPER_ADMIN required for linking an existing profile into a new clinic. Existing shared profile is unchanged.
+      description: CLINIC_ADMIN or RECEPTIONIST can link existing same-clinic profiles; SUPER_ADMIN required for
+        linking an existing profile into a new clinic. Existing shared profile is unchanged.
       parameters:
         - name: clinicId
           in: path
@@ -2815,7 +2835,8 @@ paths:
       tags:
         - Admin
       summary: Controlled status change or reschedule with expected version
-      description: CLINIC_ADMIN, RECEPTIONIST or SUPER_ADMIN; DOCTOR own confirmed appointments to completed/no_show after start. 409 for occupied slot/stale version.
+      description: CLINIC_ADMIN, RECEPTIONIST or SUPER_ADMIN; DOCTOR own confirmed appointments to completed/no_show
+        after start. 409 for occupied slot/stale version.
       parameters:
         - name: clinicId
           in: path
@@ -3489,7 +3510,8 @@ paths:
       tags:
         - Admin
       summary: Update only selected clinic settings
-      description: CLINIC_ADMIN or SUPER_ADMIN; only SUPER_ADMIN changes active. Timezone changes blocked while future bookings exist.
+      description: CLINIC_ADMIN or SUPER_ADMIN; only SUPER_ADMIN changes active. Timezone changes blocked while
+        future bookings exist.
       parameters:
         - name: clinicId
           in: path
@@ -3840,6 +3862,609 @@ paths:
           $ref: "#/components/responses/Failure"
         "503":
           $ref: "#/components/responses/Failure"
+  /api/v1/doctor/me:
+    get:
+      tags:
+        - Doctor workspace
+      summary: Read own me
+      security:
+        - bearerAuth: []
+      parameters:
+        - &a2
+          name: clinic_id
+          in: query
+          required: true
+          schema: &a3
+            type: string
+            format: uuid
+          description: Assigned clinic UUID. Doctor identity is derived from the verified account; doctor_id is not
+            accepted.
+      responses:
+        "200":
+          description: Verified doctor-scoped operation.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  data: {}
+                  message:
+                    type: string
+                required:
+                  - success
+                  - data
+        "400": &a1
+          description: Unauthorized session, forbidden clinic/doctor, invalid input, stale record or scheduling conflict.
+        "401": *a1
+        "403": *a1
+        "404": *a1
+        "409": *a1
+  /api/v1/doctor/schedule:
+    get:
+      tags:
+        - Doctor workspace
+      summary: Read own schedule
+      security:
+        - bearerAuth: []
+      parameters:
+        - *a2
+      responses:
+        "200":
+          description: Verified doctor-scoped operation.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  data: {}
+                  message:
+                    type: string
+                required:
+                  - success
+                  - data
+        "400": *a1
+        "401": *a1
+        "403": *a1
+        "404": *a1
+        "409": *a1
+  /api/v1/doctor/options:
+    get:
+      tags:
+        - Doctor workspace
+      summary: Read own options
+      security:
+        - bearerAuth: []
+      parameters:
+        - *a2
+      responses:
+        "200":
+          description: Verified doctor-scoped operation.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  data: {}
+                  message:
+                    type: string
+                required:
+                  - success
+                  - data
+        "400": *a1
+        "401": *a1
+        "403": *a1
+        "404": *a1
+        "409": *a1
+  /api/v1/doctor/appointments:
+    get:
+      tags:
+        - Doctor workspace
+      summary: List own appointments
+      security:
+        - bearerAuth: []
+      parameters:
+        - *a2
+        - &a5
+          name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100000
+            default: 1
+        - &a6
+          name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: search
+          in: query
+          schema:
+            type: string
+            maxLength: 100
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum:
+              - pending
+              - confirmed
+              - completed
+              - cancelled
+              - no_show
+        - name: service_id
+          in: query
+          schema: *a3
+        - name: patient_id
+          in: query
+          schema: *a3
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum:
+              - newest
+              - oldest
+        - name: from
+          in: query
+          schema: &a4
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          schema: *a4
+      responses:
+        "200":
+          description: Verified doctor-scoped operation.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  data: {}
+                  message:
+                    type: string
+                required:
+                  - success
+                  - data
+        "400": *a1
+        "401": *a1
+        "403": *a1
+        "404": *a1
+        "409": *a1
+  /api/v1/doctor/patients:
+    get:
+      tags:
+        - Doctor workspace
+      summary: List own patients
+      security:
+        - bearerAuth: []
+      parameters:
+        - *a2
+        - *a5
+        - *a6
+        - name: search
+          in: query
+          schema:
+            type: string
+            maxLength: 100
+      responses:
+        "200":
+          description: Verified doctor-scoped operation.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  data: {}
+                  message:
+                    type: string
+                required:
+                  - success
+                  - data
+        "400": *a1
+        "401": *a1
+        "403": *a1
+        "404": *a1
+        "409": *a1
+  /api/v1/doctor/notifications:
+    get:
+      tags:
+        - Doctor workspace
+      summary: List own notifications
+      security:
+        - bearerAuth: []
+      parameters:
+        - *a2
+        - *a5
+        - *a6
+      responses:
+        "200":
+          description: Verified doctor-scoped operation.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  data: {}
+                  message:
+                    type: string
+                required:
+                  - success
+                  - data
+        "400": *a1
+        "401": *a1
+        "403": *a1
+        "404": *a1
+        "409": *a1
+  /api/v1/doctor/requests:
+    get:
+      tags:
+        - Doctor workspace
+      summary: List own requests
+      security:
+        - bearerAuth: []
+      parameters:
+        - *a2
+        - *a5
+        - *a6
+      responses:
+        "200":
+          description: Verified doctor-scoped operation.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  data: {}
+                  message:
+                    type: string
+                required:
+                  - success
+                  - data
+        "400": *a1
+        "401": *a1
+        "403": *a1
+        "404": *a1
+        "409": *a1
+  /api/v1/doctor/appointments/{id}:
+    get:
+      tags:
+        - Doctor workspace
+      summary: Read an authorized own appointment
+      security:
+        - bearerAuth: []
+      parameters:
+        - *a2
+        - name: id
+          in: path
+          required: true
+          schema: *a3
+      responses:
+        "200":
+          description: Verified doctor-scoped operation.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  data: {}
+                  message:
+                    type: string
+                required:
+                  - success
+                  - data
+        "400": *a1
+        "401": *a1
+        "403": *a1
+        "404": *a1
+        "409": *a1
+  /api/v1/doctor/patients/{id}:
+    get:
+      tags:
+        - Doctor workspace
+      summary: Read an authorized own patient
+      security:
+        - bearerAuth: []
+      parameters:
+        - *a2
+        - name: id
+          in: path
+          required: true
+          schema: *a3
+      responses:
+        "200":
+          description: Verified doctor-scoped operation.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  data: {}
+                  message:
+                    type: string
+                required:
+                  - success
+                  - data
+        "400": *a1
+        "401": *a1
+        "403": *a1
+        "404": *a1
+        "409": *a1
+  /api/v1/doctor/dashboard:
+    get:
+      tags:
+        - Doctor workspace
+      summary: Doctor-only statistics, weekly charts, today timeline, next appointment and schedule
+      security:
+        - bearerAuth: []
+      parameters:
+        - *a2
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Verified doctor-scoped operation.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  data: {}
+                  message:
+                    type: string
+                required:
+                  - success
+                  - data
+        "400": *a1
+        "401": *a1
+        "403": *a1
+        "404": *a1
+        "409": *a1
+  /api/v1/doctor/calendar:
+    get:
+      tags:
+        - Doctor workspace
+      summary: Own appointment calendar with weekly shifts and exceptions; maximum 43-day UTC range
+      security:
+        - bearerAuth: []
+      parameters:
+        - *a2
+        - name: from
+          in: query
+          required: true
+          schema: *a4
+        - name: to
+          in: query
+          required: true
+          schema: *a4
+      responses:
+        "200":
+          description: Verified doctor-scoped operation.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  data: {}
+                  message:
+                    type: string
+                required:
+                  - success
+                  - data
+        "400": *a1
+        "401": *a1
+        "403": *a1
+        "404": *a1
+        "409": *a1
+  /api/v1/doctor/schedule-change-requests:
+    post:
+      tags:
+        - Doctor workspace
+      summary: Request schedule changes, days off, vacation or appointment rescheduling
+      security:
+        - bearerAuth: []
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DoctorChangeRequest"
+      responses:
+        "201":
+          description: Verified doctor-scoped operation.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  data: {}
+                  message:
+                    type: string
+                required:
+                  - success
+                  - data
+        "400": *a1
+        "401": *a1
+        "403": *a1
+        "404": *a1
+        "409": *a1
+  /api/v1/doctor/appointments/{id}/status:
+    patch:
+      tags:
+        - Doctor workspace
+      summary: Complete or mark own confirmed appointment no-show after its start
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: *a3
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DoctorStatusChange"
+      responses:
+        "200":
+          description: Verified doctor-scoped operation.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  data: {}
+                  message:
+                    type: string
+                required:
+                  - success
+                  - data
+        "400": *a1
+        "401": *a1
+        "403": *a1
+        "404": *a1
+        "409": *a1
+  /api/v1/admin/clinics/{clinicId}/doctor-requests:
+    get:
+      tags:
+        - Doctor workspace
+      summary: Authorized clinic administrator lists doctor requests
+      security:
+        - bearerAuth: []
+      parameters:
+        - &a7
+          name: clinicId
+          in: path
+          required: true
+          schema: *a3
+        - *a5
+        - *a6
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum:
+              - pending
+              - approved
+              - rejected
+      responses:
+        "200":
+          description: Verified doctor-scoped operation.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  data: {}
+                  message:
+                    type: string
+                required:
+                  - success
+                  - data
+        "400": *a1
+        "401": *a1
+        "403": *a1
+        "404": *a1
+        "409": *a1
+  /api/v1/admin/clinics/{clinicId}/doctor-requests/{id}:
+    patch:
+      tags:
+        - Doctor workspace
+      summary: Review a pending doctor request; approval and booking/schedule writes are atomic
+      security:
+        - bearerAuth: []
+      parameters:
+        - *a7
+        - name: id
+          in: path
+          required: true
+          schema: *a3
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DoctorRequestReview"
+      responses:
+        "200":
+          description: Verified doctor-scoped operation.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    const: true
+                  data: {}
+                  message:
+                    type: string
+                required:
+                  - success
+                  - data
+        "400": *a1
+        "401": *a1
+        "403": *a1
+        "404": *a1
+        "409": *a1
 components:
   securitySchemes:
     bearerAuth:
@@ -5392,6 +6017,115 @@ components:
         expected_updated_at:
           type: string
           format: date-time
+    DoctorStatusChange:
+      type: object
+      additionalProperties: false
+      properties:
+        clinic_id: *a3
+        status:
+          type: string
+          enum:
+            - completed
+            - no_show
+        expected_updated_at: *a4
+      required:
+        - clinic_id
+        - status
+        - expected_updated_at
+    DoctorChangeRequest:
+      oneOf:
+        - type: object
+          additionalProperties: false
+          properties:
+            clinic_id: *a3
+            kind:
+              type: string
+              const: schedule
+            reason: &a8
+              type: string
+              minLength: 5
+              maxLength: 2000
+            payload:
+              $ref: "#/components/schemas/AdminSchedule"
+          required:
+            - clinic_id
+            - kind
+            - reason
+            - payload
+        - type: object
+          additionalProperties: false
+          properties:
+            clinic_id: *a3
+            kind:
+              type: string
+              const: day_off
+            reason: *a8
+            payload: &a9
+              type: object
+              additionalProperties: false
+              properties:
+                starts_at: *a4
+                ends_at: *a4
+              required:
+                - starts_at
+                - ends_at
+          required:
+            - clinic_id
+            - kind
+            - reason
+            - payload
+        - type: object
+          additionalProperties: false
+          properties:
+            clinic_id: *a3
+            kind:
+              type: string
+              const: vacation
+            reason: *a8
+            payload: *a9
+          required:
+            - clinic_id
+            - kind
+            - reason
+            - payload
+        - type: object
+          additionalProperties: false
+          properties:
+            clinic_id: *a3
+            kind:
+              type: string
+              const: reschedule
+            reason: *a8
+            payload:
+              type: object
+              additionalProperties: false
+              properties:
+                appointment_id: *a3
+                starts_at: *a4
+                expected_updated_at: *a4
+              required:
+                - appointment_id
+                - starts_at
+                - expected_updated_at
+          required:
+            - clinic_id
+            - kind
+            - reason
+            - payload
+      description: Requests never alter schedules or appointments immediately. Clinic administrator approval
+        revalidates conflicts; schedule requests preserve a baseline to detect intervening edits.
+    DoctorRequestReview:
+      type: object
+      additionalProperties: false
+      properties:
+        approve:
+          type: boolean
+        note:
+          type: string
+          maxLength: 2000
+          default: ""
+      required:
+        - approve
   responses:
     Failure:
       description: Sanitized error envelope
@@ -5401,10 +6135,14 @@ components:
             $ref: "#/components/schemas/Error"
 tags:
   - name: Admin
-    description: Verified staff JWT and active clinic membership required. SUPER_ADMIN access is global; doctor appointment reads are restricted to own doctor identity.
+    description: Verified staff JWT and active clinic membership required. SUPER_ADMIN access is global; doctor
+      appointment reads are restricted to own doctor identity.
   - name: Booking
-    description: Verified patient identity. Shared database availability/transaction with staff booking; no client patient identity accepted.
+    description: Verified patient identity. Shared database availability/transaction with staff booking; no client
+      patient identity accepted.
   - name: Admin
-    description: Verified staff JWT and active clinic membership required. SUPER_ADMIN access is global; doctor appointment reads are restricted to own doctor identity.
+    description: Verified staff JWT and active clinic membership required. SUPER_ADMIN access is global; doctor
+      appointment reads are restricted to own doctor identity.
   - name: Booking
-    description: Verified patient identity. Shared database availability/transaction with staff booking; no client patient identity accepted.
+    description: Verified patient identity. Shared database availability/transaction with staff booking; no client
+      patient identity accepted.

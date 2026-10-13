@@ -59,3 +59,16 @@
 - `supabase/migrations/202610120004_staff_booking.sql`
 - `supabase/migrations/202610120005_admin_management.sql`
 - `supabase/migrations/202610120006_shared_booking_system.sql`
+
+## Doctor extension
+
+- `apps/dashboard/src/features/doctor/DoctorPages.jsx`
+- `apps/dashboard/src/features/doctor/RequestReview.jsx`
+- `apps/dashboard/src/features/doctor/RescheduleRequest.jsx`
+- `apps/dashboard/src/features/doctor/WorkingHours.jsx`
+- `apps/dashboard/src/hooks/useAdmin.doctor.test.jsx`
+- `apps/dashboard/src/hooks/useDoctor.js`
+- `apps/dashboard/tests/doctor-browser.mjs`
+- `backend/src/modules/doctor/routes.ts`
+- `docs/phase-5-doctor.md`
+- `supabase/migrations/202610130007_doctor_workspace.sql`

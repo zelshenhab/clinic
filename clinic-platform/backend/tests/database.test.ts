@@ -553,3 +553,525 @@ it("bootstraps only the first administrator through a server-only audited transa
     ).rows[0].allowed,
   ).toBe(false);
 });
+
+const workspaceDoctorUser = "51000000-0000-4000-8000-000000000001",
+  otherDoctorUser = "51000000-0000-4000-8000-000000000002",
+  ownPatient = "51000000-0000-4000-8000-000000000003",
+  foreignPatient = "51000000-0000-4000-8000-000000000004";
+async function doctorFixture(run: (f: any) => Promise<void>) {
+  await db.exec("begin");
+  try {
+    await db.exec(
+      "update public.system_settings set booking_enabled=true,booking_horizon_days=90 where id",
+    );
+    const other = (
+      await db.query<any>(
+        `select ds.doctor_id,s.id service_id from public.doctor_services ds join public.services s on s.id=ds.service_id and s.clinic_id=ds.clinic_id where ds.clinic_id=$1 and ds.doctor_id<>$2 and ds.active and s.active limit 1`,
+        [clinic, doctor],
+      )
+    ).rows[0];
+    await db.query(`insert into auth.users(id) values($1),($2),($3),($4)`, [
+      workspaceDoctorUser,
+      otherDoctorUser,
+      ownPatient,
+      foreignPatient,
+    ]);
+    await db.query(
+      `insert into public.staff_memberships(user_id,clinic_id,role,doctor_id) values($1,$3,'DOCTOR',$4),($2,$3,'DOCTOR',$5)`,
+      [workspaceDoctorUser, otherDoctorUser, clinic, doctor, other.doctor_id],
+    );
+    await db.query(`select public.admin_patient_link($1,$2,$3,$4)`, [
+      actor,
+      clinic,
+      ownPatient,
+      JSON.stringify({ full_name: "Doctor A patient", phone: "+70000000511" }),
+    ]);
+    await db.query(`select public.admin_patient_link($1,$2,$3,$4)`, [
+      actor,
+      clinic,
+      foreignPatient,
+      JSON.stringify({ full_name: "Doctor B patient", phone: "+70000000512" }),
+    ]);
+    const insert = async (d: string, s: string, p: string, past: boolean) =>
+      (
+        await db.query<any>(
+          `insert into public.appointments(clinic_id,doctor_id,patient_id,service_id,starts_at,ends_at,status,price_rub) select $1,$2,$3,id,now()+case when $5 then interval '-2 days' else interval '20 days' end,now()+case when $5 then interval '-2 days' else interval '20 days' end+interval '30 minutes','confirmed',price_rub from public.services where id=$4 returning *`,
+          [clinic, d, p, s, past],
+        )
+      ).rows[0];
+    const own = await insert(doctor, service, ownPatient, false),
+      foreign = await insert(
+        other.doctor_id,
+        other.service_id,
+        foreignPatient,
+        false,
+      ),
+      past = await insert(doctor, service, ownPatient, true);
+    const original = db.query.bind(db);
+    db.query = (async (...args: any[]) => {
+      await original("savepoint doctor_assertion");
+      try {
+        const result = await (original as any)(...args);
+        await original("release savepoint doctor_assertion");
+        return result;
+      } catch (error) {
+        await original("rollback to savepoint doctor_assertion");
+        await original("release savepoint doctor_assertion");
+        throw error;
+      }
+    }) as typeof db.query;
+    try {
+      await run({ own, foreign, past, other });
+    } finally {
+      db.query = original;
+    }
+  } finally {
+    await db.exec("rollback");
+  }
+}
+const doctorRead = async (resource: string, q: any = {}) =>
+  (
+    await db.query<any>("select public.doctor_read($1,$2,$3,$4) d", [
+      workspaceDoctorUser,
+      clinic,
+      resource,
+      JSON.stringify(q),
+    ])
+  ).rows[0].d;
+it("doctor endpoints isolate own appointments even with a separate admin role", () =>
+  doctorFixture(async ({ own, foreign }) => {
+    await db.query(
+      `insert into public.staff_memberships(user_id,clinic_id,role) values($1,$2,'CLINIC_ADMIN')`,
+      [workspaceDoctorUser, clinic],
+    );
+    const list = await doctorRead("appointments");
+    expect(list.items.some((r: any) => r.id === own.id)).toBe(true);
+    expect(list.items.some((r: any) => r.id === foreign.id)).toBe(false);
+    await expect(doctorRead("appointment", { id: foreign.id })).rejects.toThrow(
+      "NOT_FOUND",
+    );
+    expect((await doctorRead("appointment", { id: own.id })).id).toBe(own.id);
+  }));
+it("doctor patient relationships and history exclude unrelated clinic patients", () =>
+  doctorFixture(async () => {
+    const list = await doctorRead("patients");
+    expect(list.items.some((p: any) => p.id === ownPatient)).toBe(true);
+    expect(list.items.some((p: any) => p.id === foreignPatient)).toBe(false);
+    expect(
+      list.items.find((p: any) => p.id === ownPatient).appointment_count,
+    ).toBe(2);
+    expect(list.items[0]).not.toHaveProperty("phone");
+    await expect(doctorRead("patient", { id: foreignPatient })).rejects.toThrow(
+      "NOT_FOUND",
+    );
+    expect(
+      (await doctorRead("appointments", { patient_id: foreignPatient })).items,
+    ).toEqual([]);
+  }));
+it("doctor identity rejects unauthorized clinics and supports a valid second assignment", () =>
+  doctorFixture(async () => {
+    const other = (
+      await db.query<any>(
+        "select id from public.clinics where id<>$1 limit 1",
+        [clinic],
+      )
+    ).rows[0].id;
+    await expect(
+      db.query("select public.doctor_identity($1,$2)", [
+        workspaceDoctorUser,
+        other,
+      ]),
+    ).rejects.toThrow("FORBIDDEN");
+    await db.query(
+      "insert into public.doctor_clinics(clinic_id,doctor_id) values($1,$2) on conflict do nothing",
+      [other, doctor],
+    );
+    {
+      await db.query(
+        `insert into public.staff_memberships(user_id,clinic_id,role,doctor_id) values($1,$2,'DOCTOR',$3)`,
+        [workspaceDoctorUser, other, doctor],
+      );
+      expect(
+        (
+          await db.query<any>("select public.doctor_identity($1,$2) id", [
+            workspaceDoctorUser,
+            other,
+          ])
+        ).rows[0].id,
+      ).toBe(doctor);
+    }
+  }));
+it("doctor dashboard aggregates match only that doctor SQL records", () =>
+  doctorFixture(async () => {
+    const day = (
+      await db.query<any>(
+        `select (now() at time zone timezone)::date::text as day from public.clinics where id=$1`,
+        [clinic],
+      )
+    ).rows[0].day;
+    const d = await doctorRead("dashboard", { from: day, to: day });
+    const expected = (
+      await db.query<any>(
+        `select count(distinct patient_id)::int patients,count(*) filter(where starts_at>now() and status in ('pending','confirmed'))::int upcoming from public.appointments where clinic_id=$1 and doctor_id=$2`,
+        [clinic, doctor],
+      )
+    ).rows[0];
+    expect(d.kpis.patients).toBe(expected.patients);
+    expect(d.kpis.upcoming).toBe(expected.upcoming);
+    expect(d.next.doctor_id).toBe(doctor);
+    expect(d.schedule.weekly.length).toBeGreaterThan(0);
+  }));
+it("doctor calendar returns own events with schedule and exceptions", () =>
+  doctorFixture(async ({ own, foreign }) => {
+    const q = {
+      from: new Date(Date.parse(own.starts_at) - 3600000).toISOString(),
+      to: new Date(Date.parse(own.ends_at) + 3600000).toISOString(),
+    };
+    const c = await doctorRead("calendar", q);
+    expect(c.items.map((r: any) => r.id)).toContain(own.id);
+    expect(c.items.map((r: any) => r.id)).not.toContain(foreign.id);
+    expect(c.schedule).toHaveProperty("exceptions");
+  }));
+it("doctor status changes enforce ownership, valid transitions, history and audit", () =>
+  doctorFixture(async ({ own, foreign, past }) => {
+    const change = async (a: any, status: string) =>
+      db.query<any>("select public.doctor_status($1,$2,$3,$4) a", [
+        workspaceDoctorUser,
+        clinic,
+        a.id,
+        JSON.stringify({ status, expected_updated_at: a.updated_at }),
+      ]);
+    await expect(change(foreign, "completed")).rejects.toThrow("NOT_FOUND");
+    await expect(change(own, "cancelled")).rejects.toThrow("FORBIDDEN");
+    await expect(change(own, "completed")).rejects.toThrow(
+      "INVALID_TRANSITION",
+    );
+    expect((await change(past, "completed")).rows[0].a.status).toBe(
+      "completed",
+    );
+    expect(
+      (
+        await db.query(
+          `select 1 from public.appointment_status_history where appointment_id=$1 and status='completed'`,
+          [past.id],
+        )
+      ).rows.length,
+    ).toBe(1);
+    expect(
+      (
+        await db.query(
+          `select 1 from public.audit_logs where resource_id=$1 and action='appointment.status_changed'`,
+          [past.id],
+        )
+      ).rows.length,
+    ).toBe(1);
+  }));
+it("schedule requests leave schedules unchanged until authorized admin approval", () =>
+  doctorFixture(async () => {
+    const schedule = await doctorRead("schedule");
+    const proposed = {
+      weekly: schedule.weekly.map((s: any) => ({
+        weekday: s.weekday,
+        starts_at: s.starts_at.slice(0, 5),
+        ends_at: s.ends_at.slice(0, 5),
+        breaks: s.breaks,
+      })),
+      exceptions: schedule.exceptions.map((e: any) => ({
+        starts_at: e.starts_at,
+        ends_at: e.ends_at,
+        available: e.available,
+      })),
+    };
+    const r = (
+      await db.query<any>("select public.doctor_request($1,$2,$3,$4,$5) r", [
+        workspaceDoctorUser,
+        clinic,
+        "schedule",
+        JSON.stringify(proposed),
+        "Please keep my current working hours",
+      ])
+    ).rows[0].r;
+    expect(await doctorRead("schedule")).toEqual(schedule);
+    await expect(
+      db.query("select public.admin_review_doctor_request($1,$2,$3,true,$4)", [
+        workspaceDoctorUser,
+        clinic,
+        r.id,
+        "approved",
+      ]),
+    ).rejects.toThrow("FORBIDDEN");
+    // The deliberately off-grid fixture appointment makes approval conflict: rejection remains safe.
+    expect(
+      (
+        await db.query<any>(
+          "select public.admin_review_doctor_request($1,$2,$3,false,$4) r",
+          [actor, clinic, r.id, "Please discuss the requested hours"],
+        )
+      ).rows[0].r.status,
+    ).toBe("rejected");
+    expect(await doctorRead("schedule")).toEqual(schedule);
+    expect(
+      (await doctorRead("notifications")).items.some(
+        (n: any) => n.action === "request.rejected",
+      ),
+    ).toBe(true);
+  }));
+it("leave approval checks appointments atomically and rejects conflicts", () =>
+  doctorFixture(async ({ own }) => {
+    const r = (
+      await db.query<any>("select public.doctor_request($1,$2,$3,$4,$5) r", [
+        workspaceDoctorUser,
+        clinic,
+        "vacation",
+        JSON.stringify({ starts_at: own.starts_at, ends_at: own.ends_at }),
+        "Vacation overlaps a booked appointment",
+      ])
+    ).rows[0].r;
+    const old = await doctorRead("schedule");
+    await expect(
+      db.query("select public.admin_review_doctor_request($1,$2,$3,true,$4)", [
+        actor,
+        clinic,
+        r.id,
+        "approved",
+      ]),
+    ).rejects.toThrow("SCHEDULE_CONFLICT");
+    expect(await doctorRead("schedule")).toEqual(old);
+    expect(
+      (await doctorRead("requests")).items.find((x: any) => x.id === r.id)
+        .status,
+    ).toBe("pending");
+    const free = (
+      await db.query<any>("select public.doctor_request($1,$2,$3,$4,$5) r", [
+        workspaceDoctorUser,
+        clinic,
+        "day_off",
+        JSON.stringify({
+          starts_at: new Date(Date.now() + 25 * 86400000).toISOString(),
+          ends_at: new Date(Date.now() + 25 * 86400000 + 3600000).toISOString(),
+        }),
+        "Requested free afternoon",
+      ])
+    ).rows[0].r;
+    expect(
+      (
+        await db.query<any>(
+          "select public.admin_review_doctor_request($1,$2,$3,true,$4) r",
+          [actor, clinic, free.id, "approved"],
+        )
+      ).rows[0].r.status,
+    ).toBe("approved");
+    expect(
+      (await doctorRead("schedule")).exceptions.some((e: any) => !e.available),
+    ).toBe(true);
+  }));
+it("doctor requests broadcast identifiers only to own doctor and authorized administrators", () =>
+  doctorFixture(async () => {
+    await db.exec("delete from realtime.messages");
+    await db.query("select public.doctor_request($1,$2,$3,$4,$5)", [
+      workspaceDoctorUser,
+      clinic,
+      "day_off",
+      JSON.stringify({
+        starts_at: new Date(Date.now() + 26 * 86400000).toISOString(),
+        ends_at: new Date(Date.now() + 26 * 86400000 + 3600000).toISOString(),
+      }),
+      "A requested day off",
+    ]);
+    const messages = (await db.query<any>("select * from realtime.messages"))
+      .rows;
+    expect(
+      messages.some(
+        (m) => m.topic === `staff:${clinic}:${workspaceDoctorUser}`,
+      ),
+    ).toBe(true);
+    expect(
+      messages.some((m) => m.topic === `staff:${clinic}:${otherDoctorUser}`),
+    ).toBe(false);
+    for (const m of messages) {
+      expect(Object.keys(m.payload).sort()).toEqual([
+        "clinic_id",
+        "event_id",
+        "request_id",
+      ]);
+    }
+  }));
+it("doctor account cannot be linked to a different identity in another clinic", () =>
+  doctorFixture(async ({ other }) => {
+    const c = (
+      await db.query<any>(
+        "select id from public.clinics where id<>$1 limit 1",
+        [clinic],
+      )
+    ).rows[0].id;
+    await expect(
+      db.query(
+        `insert into public.staff_memberships(user_id,clinic_id,role,doctor_id) values($1,$2,'DOCTOR',$3)`,
+        [workspaceDoctorUser, c, other.doctor_id],
+      ),
+    ).rejects.toThrow("VALIDATION_ERROR");
+  }));
+it("doctor rescheduling requires review and approval uses real booking availability", () =>
+  doctorFixture(async ({ own }) => {
+    let target: string | undefined;
+    for (let offset = 1; offset < 8; offset++) {
+      const day = (
+        await db.query<any>("select (current_date+$1::integer)::text as day", [
+          offset,
+        ])
+      ).rows[0].day;
+      const slots = (
+        await db.query<any>(
+          "select public.admin_availability($1,$2,$3,$4,$5) slots",
+          [actor, clinic, doctor, service, day],
+        )
+      ).rows[0].slots;
+      if (slots.length) {
+        target = slots[0].starts_at;
+        break;
+      }
+    }
+    expect(target).toBeDefined();
+    const r = (
+      await db.query<any>("select public.doctor_request($1,$2,$3,$4,$5) r", [
+        workspaceDoctorUser,
+        clinic,
+        "reschedule",
+        JSON.stringify({
+          appointment_id: own.id,
+          starts_at: target,
+          expected_updated_at: own.updated_at,
+        }),
+        "Please move my appointment to the available time",
+      ])
+    ).rows[0].r;
+    expect(
+      Date.parse((await doctorRead("appointment", { id: own.id })).starts_at),
+    ).toBe(new Date(own.starts_at).getTime());
+    expect(
+      (
+        await db.query<any>(
+          "select public.admin_review_doctor_request($1,$2,$3,true,$4) r",
+          [actor, clinic, r.id, "Available slot approved"],
+        )
+      ).rows[0].r.status,
+    ).toBe("approved");
+    const updated = await doctorRead("appointment", { id: own.id });
+    expect(Date.parse(updated.starts_at)).toBe(Date.parse(target!));
+    await expect(
+      db.query("select public.admin_review_doctor_request($1,$2,$3,true,$4)", [
+        actor,
+        clinic,
+        r.id,
+        "second approval",
+      ]),
+    ).rejects.toThrow("STALE_APPOINTMENT");
+  }));
+it("shared patient booking emits a private update only for the assigned doctor", () =>
+  doctorFixture(async () => {
+    let target: string | undefined;
+    for (let offset = 1; offset < 8; offset++) {
+      const day = (
+        await db.query<any>("select (current_date+$1::integer)::text as day", [
+          offset,
+        ])
+      ).rows[0].day;
+      const slots = (
+        await db.query<any>(
+          "select public.patient_availability($1,$2,$3,$4,$5) slots",
+          [ownPatient, clinic, doctor, service, day],
+        )
+      ).rows[0].slots;
+      if (slots.length) {
+        target = slots[0].starts_at;
+        break;
+      }
+    }
+    expect(target).toBeDefined();
+    await db.exec("delete from realtime.messages");
+    const booked = (
+      await db.query<any>("select public.patient_book($1,$2,$3) a", [
+        ownPatient,
+        clinic,
+        JSON.stringify({
+          doctor_id: doctor,
+          service_id: service,
+          starts_at: target,
+        }),
+      ])
+    ).rows[0].a;
+    expect(
+      (await doctorRead("appointments")).items.some(
+        (a: any) => a.id === booked.id,
+      ),
+    ).toBe(true);
+    const messages = (
+      await db.query<any>("select topic,payload from realtime.messages")
+    ).rows;
+    expect(
+      messages.some(
+        (m) => m.topic === `staff:${clinic}:${workspaceDoctorUser}`,
+      ),
+    ).toBe(true);
+    expect(
+      messages.some((m) => m.topic === `staff:${clinic}:${otherDoctorUser}`),
+    ).toBe(false);
+    expect(
+      messages
+        .filter((m) => m.topic.startsWith("staff:"))
+        .every((m) => !("patient_name" in m.payload)),
+    ).toBe(true);
+  }));
+it("schedule approval cannot overwrite intervening administrator edits", () =>
+  doctorFixture(async () => {
+    const schedule = await doctorRead("schedule");
+    const payload = {
+      weekly: schedule.weekly.map((s: any) => ({
+        weekday: s.weekday,
+        starts_at: s.starts_at.slice(0, 5),
+        ends_at: s.ends_at.slice(0, 5),
+        breaks: s.breaks,
+      })),
+      exceptions: [],
+    };
+    const r = (
+      await db.query<any>("select public.doctor_request($1,$2,$3,$4,$5) r", [
+        workspaceDoctorUser,
+        clinic,
+        "schedule",
+        JSON.stringify(payload),
+        "Please review my weekly hours",
+      ])
+    ).rows[0].r;
+    await db.query(
+      "update public.doctor_schedules set ends_at=ends_at+interval '15 minutes' where clinic_id=$1 and doctor_id=$2",
+      [clinic, doctor],
+    );
+    const edited = await doctorRead("schedule");
+    await expect(
+      db.query("select public.admin_review_doctor_request($1,$2,$3,true,$4)", [
+        actor,
+        clinic,
+        r.id,
+        "approve stale proposal",
+      ]),
+    ).rejects.toThrow("STALE_APPOINTMENT");
+    expect(await doctorRead("schedule")).toEqual(edited);
+  }));
+it("browser database roles cannot invoke doctor RPCs or read change-request tables", async () => {
+  await db.exec("set role authenticated");
+  try {
+    await expect(
+      db.query("select public.doctor_read($1,$2,$3)", [
+        workspaceDoctorUser,
+        clinic,
+        "patients",
+      ]),
+    ).rejects.toThrow(/permission denied/);
+    await expect(
+      db.query("select * from public.doctor_change_requests"),
+    ).rejects.toThrow(/permission denied/);
+  } finally {
+    await db.exec("reset role");
+  }
+});

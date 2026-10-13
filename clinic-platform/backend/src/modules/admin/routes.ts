@@ -302,6 +302,51 @@ export function adminRoutes(db: SupabaseClient) {
       201,
     ),
   );
+  router.get(
+    base + "/doctor-requests",
+    guard("scheduleWrite"),
+    async (req, res) => {
+      const q = z
+        .object({
+          page: z.coerce.number().int().min(1).max(100000).default(1),
+          limit: z.coerce.number().int().min(1).max(100).default(20),
+          status: z.enum(["pending", "approved", "rejected"]).optional(),
+        })
+        .strict()
+        .parse(req.query);
+      ok(
+        res,
+        await repo.rpc("admin_doctor_requests", {
+          p_actor: res.locals.access.userId,
+          p_clinic: res.locals.clinic,
+          p_query: q,
+        }),
+      );
+    },
+  );
+  router.patch(
+    base + "/doctor-requests/:id",
+    guard("scheduleWrite"),
+    async (req, res) => {
+      const q = z
+        .object({
+          approve: z.boolean(),
+          note: z.string().trim().max(2000).default(""),
+        })
+        .strict()
+        .parse(req.body);
+      ok(
+        res,
+        await repo.rpc("admin_review_doctor_request", {
+          p_actor: res.locals.access.userId,
+          p_clinic: res.locals.clinic,
+          p_id: uuid.parse(req.params.id),
+          p_approve: q.approve,
+          p_note: q.note,
+        }),
+      );
+    },
+  );
   router.get(base + "/schedules", guard("schedules"), async (req, res) =>
     ok(
       res,

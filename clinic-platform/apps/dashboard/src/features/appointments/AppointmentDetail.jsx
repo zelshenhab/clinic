@@ -1,3 +1,4 @@
+import RescheduleRequest from "../doctor/RescheduleRequest";
 import { useState } from "react";
 import { useAdminQuery, useAdminMutation } from "../../hooks/useAdmin";
 import { useClinic } from "../../contexts/ClinicContext";
@@ -72,6 +73,22 @@ export default function AppointmentDetail({ id, onClose }) {
                 </div>
               ))}
             </div>
+            {access.role === "DOCTOR" &&
+              ["pending", "confirmed"].includes(record.status) &&
+              Date.parse(record.starts_at) > Date.now() && (
+                <button
+                  className="button secondary"
+                  onClick={() => setAction("request")}
+                >
+                  {t("requestReschedule")}
+                </button>
+              )}
+            {action === "request" && (
+              <RescheduleRequest
+                record={record}
+                onDone={() => setAction(null)}
+              />
+            )}
             <div className="action-row">
               {[
                 ["confirmed", "confirm"],
@@ -88,7 +105,9 @@ export default function AppointmentDetail({ id, onClose }) {
                         : []
                     ).includes(status) &&
                     (access.role !== "DOCTOR" ||
-                      ["completed", "no_show"].includes(status)),
+                      ["completed", "no_show"].includes(status)) &&
+                    (!["completed", "no_show"].includes(status) ||
+                      Date.parse(record.starts_at) <= Date.now()),
                 )
                 .map(([status, label]) => (
                   <button
@@ -109,7 +128,7 @@ export default function AppointmentDetail({ id, onClose }) {
                   </button>
                 )}
             </div>
-            {action && action !== "reschedule" && (
+            {action && action !== "reschedule" && action !== "request" && (
               <div className="confirmation">
                 <strong>{t("confirmAction")}</strong>
                 <p>

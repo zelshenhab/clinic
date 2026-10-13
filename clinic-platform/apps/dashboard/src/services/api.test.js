@@ -59,3 +59,19 @@ it("rejects private requests before dispatch when no session exists", async () =
   });
   expect(adapter).not.toHaveBeenCalled();
 });
+
+it("attaches verified session tokens to doctor requests and rejects missing sessions", async () => {
+  const adapter = vi.fn(async (config) => ({
+    config,
+    status: 200,
+    data: { success: true, data: { id: "own-doctor" } },
+  }));
+  await api.get("/doctor/me", { adapter });
+  expect(adapter.mock.calls[0][0].headers.Authorization).toBe("Bearer token");
+  auth.getSession.mockResolvedValue({ data: { session: null } });
+  adapter.mockClear();
+  await expect(
+    api.get("/doctor/appointments", { adapter }),
+  ).rejects.toMatchObject({ status: 401 });
+  expect(adapter).not.toHaveBeenCalled();
+});

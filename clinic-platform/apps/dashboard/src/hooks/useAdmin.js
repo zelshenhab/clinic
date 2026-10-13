@@ -14,20 +14,40 @@ export function useAdminQuery(path, params = {}, enabled = true) {
       access?.role,
       access?.doctor_id,
     ],
-    queryFn: ({ signal }) =>
-      api.get(adminPath(clinic.id, path), { params, signal }),
+    queryFn: ({ signal }) => {
+      if (access?.role === "DOCTOR") {
+        const mapped =
+          path === "filter-options"
+            ? "options"
+            : /^doctors\/[^/]+\/schedules$/.test(path)
+              ? "schedule"
+              : path;
+        const { doctor_id, specialty_id, ...safe } = params;
+        return api.get("/doctor/" + mapped, {
+          params: { ...safe, clinic_id: clinic.id },
+          signal,
+        });
+      }
+      return api.get(adminPath(clinic.id, path), { params, signal });
+    },
     enabled: Boolean(clinic) && enabled,
     retry: (count, error) =>
       ![401, 403, 404, 400].includes(error.status) && count < 1,
   });
 }
 export function useAdminMutation(path, method = "post", successKey = "saved") {
-  const { clinic } = useClinic(),
+  const { clinic, access } = useClinic(),
     client = useQueryClient(),
     toast = useToast(),
     { t } = useLocale();
   return useMutation({
-    mutationFn: (input) => api[method](adminPath(clinic.id, path), input),
+    mutationFn: (input) =>
+      access?.role === "DOCTOR" && /^appointments\/[^/]+$/.test(path)
+        ? api.patch("/doctor/" + path + "/status", {
+            ...input,
+            clinic_id: clinic.id,
+          })
+        : api[method](adminPath(clinic.id, path), input),
     retry: false,
     onSuccess: () => {
       client.invalidateQueries({ queryKey: ["clinic", clinic.id] });

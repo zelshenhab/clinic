@@ -13,7 +13,7 @@ export const api = axios.create({
   timeout: 20000,
 });
 api.interceptors.request.use(async (config) => {
-  if (config.url?.startsWith("/admin")) {
+  if (config.url?.startsWith("/admin") || config.url?.startsWith("/doctor")) {
     const session = await supabase?.auth.getSession();
     const token = session?.data?.session?.access_token;
     if (!token) throw new ApiError("UNAUTHORIZED", 401);
