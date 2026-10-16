@@ -1,25 +1,29 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../services/api";
-import { supabase } from "../services/supabase";
+import { supabase, clearStoredSession } from "../services/supabase";
 const AuthContext = createContext();
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null),
     [restored, setRestored] = useState(!supabase),
-    client = useQueryClient();
+    client = useQueryClient(),
+    [loggingOut, setLoggingOut] = useState(false),
+    logoutTask = useRef(null),
+    sessionVersion = useRef(0);
   useEffect(() => {
     if (!supabase) return;
     let active = true;
+    const version = sessionVersion.current;
     supabase.auth
       .getSession()
       .then(({ data, error }) => {
-        if (active) {
+        if (active && version === sessionVersion.current) {
           setSession(error ? null : data.session);
           setRestored(true);
         }
       })
       .catch(() => {
-        if (active) {
+        if (active && version === sessionVersion.current) {
           setSession(null);
           setRestored(true);
         }
@@ -27,7 +31,7 @@ export function AuthProvider({ children }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, next) => {
-      if (!active) return;
+      if (!active || (logoutTask.current && next)) return;
       setSession(next);
       setRestored(true);
       if (!next) {
@@ -55,18 +59,35 @@ export function AuthProvider({ children }) {
     });
     if (error) throw new Error("LOGIN_FAILED");
   };
-  const logout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw new Error("LOGOUT_FAILED");
-    client.clear();
+  const logout = () => {
+    if (logoutTask.current) return logoutTask.current;
+    sessionVersion.current++;
+    setLoggingOut(true);
+    logoutTask.current = (async () => {
+      try {
+        if (supabase) await supabase.auth.signOut({ scope: "local" });
+      } catch {
+        // Local logout still removes this browser's credentials if revocation fails.
+      } finally {
+        clearStoredSession();
+        setSession(null);
+        setRestored(true);
+        await client.cancelQueries();
+        client.clear();
+        setLoggingOut(false);
+        logoutTask.current = null;
+      }
+    })();
+    return logoutTask.current;
   };
   return (
     <AuthContext.Provider
       value={{
         session,
+        loggingOut,
         restored,
         configured: Boolean(supabase),
-        staff: staff.data,
+        staff: session && !loggingOut ? staff.data : undefined,
         error: staff.error,
         loading: staff.isPending && Boolean(session),
         retry: staff.refetch,

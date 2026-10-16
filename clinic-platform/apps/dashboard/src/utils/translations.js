@@ -1,5 +1,6 @@
 export const translations = {
   ru: {
+    loggingOut: "Выход…",
     customRange: "Выбрать даты",
     doctorSettings: "Настройки",
     appointmentDate: "Дата приёма",
@@ -319,6 +320,7 @@ export const translations = {
       "Изображение загружено. Сохраните форму, чтобы применить его.",
   },
   en: {
+    loggingOut: "Signing out…",
     customRange: "Custom date range",
     doctorSettings: "Settings",
     appointmentDate: "Appointment date",

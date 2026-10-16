@@ -19,7 +19,7 @@ function Protected() {
   const auth = useAuth(),
     { t } = useLocale(),
     toast = useToast();
-  if (!auth.restored || auth.loading) return <Skeleton />;
+  if (!auth.restored || auth.loading || auth.loggingOut) return <Skeleton />;
   if (!auth.session) return <Navigate to="/login" replace />;
   if (auth.error)
     return (

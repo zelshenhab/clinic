@@ -203,6 +203,8 @@ export default function Layout() {
                   <p>{t(access?.role)}</p>
                   <button
                     className="button secondary"
+                    disabled={auth.loggingOut}
+                    aria-busy={auth.loggingOut}
                     onClick={async () => {
                       try {
                         await auth.logout();
@@ -212,7 +214,7 @@ export default function Layout() {
                     }}
                   >
                     <LogOut size={17} />
-                    {t("logout")}
+                    {t(auth.loggingOut ? "loggingOut" : "logout")}
                   </button>
                 </div>
               )}

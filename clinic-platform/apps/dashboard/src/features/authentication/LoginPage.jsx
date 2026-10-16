@@ -5,7 +5,7 @@ import { Navigate } from "react-router-dom";
 import { HeartPulse, ArrowRight, ShieldCheck } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useLocale } from "../../contexts/LocaleContext";
-import { Submit, Failure } from "../../components/Shared";
+import { Submit, Failure, Skeleton } from "../../components/Shared";
 const schema = z.object({ email: z.email(), password: z.string().min(8) });
 export default function LoginPage() {
   const auth = useAuth(),
@@ -16,7 +16,8 @@ export default function LoginPage() {
     setError,
     formState: { errors, isSubmitting },
   } = useForm({ resolver: zodResolver(schema) });
-  if (auth.staff) return <Navigate to="/" replace />;
+  if (auth.loggingOut) return <Skeleton />;
+  if (auth.session && auth.staff) return <Navigate to="/" replace />;
   return (
     <main className="login">
       <aside className="login-story">
