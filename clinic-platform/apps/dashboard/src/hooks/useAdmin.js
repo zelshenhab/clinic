@@ -9,6 +9,7 @@ export function useAdminQuery(path, params = {}, enabled = true) {
   return useQuery({
     ...adminQueryOptions(clinic, access, path, params),
     enabled: Boolean(clinic) && enabled,
+    refetchInterval: path === "queue" ? 30000 : false,
   });
 }
 export function useAdminMutation(path, method = "post", successKey = "saved") {
@@ -18,11 +19,15 @@ export function useAdminMutation(path, method = "post", successKey = "saved") {
     { t } = useLocale();
   return useMutation({
     mutationFn: (input) =>
-      access?.role === "DOCTOR" && /^appointments\/[^/]+$/.test(path)
-        ? api.patch("/doctor/" + path + "/status", {
-            ...input,
-            clinic_id: clinic.id,
-          })
+      access?.role === "DOCTOR" &&
+      /^appointments\/[^/]+(?:\/attendance)?$/.test(path)
+        ? api.patch(
+            "/doctor/" + path + (path.endsWith("/attendance") ? "" : "/status"),
+            {
+              ...input,
+              clinic_id: clinic.id,
+            },
+          )
         : api[method](adminPath(clinic.id, path), input),
     retry: false,
     onSuccess: () => {

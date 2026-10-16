@@ -62,7 +62,7 @@ try {
     .getByRole("heading", { name: "Doctor overview", exact: true })
     .waitFor();
   await page.locator(".kpi-grid").waitFor();
-  assert.equal(await page.locator("aside nav a").count(), 8);
+  assert.equal(await page.locator("aside nav a").count(), 9);
   assert.equal(
     await page
       .locator("aside nav")
@@ -77,6 +77,7 @@ try {
   for (const title of [
     "My appointments",
     "My calendar",
+    "Arrival queue",
     "My patients",
     "My schedule",
     "Notifications",
@@ -324,7 +325,7 @@ try {
   await adminPage.close();
   assert.deepEqual(errors, []);
   console.log(
-    "Doctor browser QA passed: private login/layout, 8 pages, calendar views/schedule, own patients, direct schedule save, public slots, patient booking, duplicate-booking rejection, reschedule request, admin-only review, notifications, clinic switch, RU/EN and mobile layout.",
+    "Doctor browser QA passed: private login/layout, 9 pages, calendar views/schedule, own patients, direct schedule save, public slots, patient booking, duplicate-booking rejection, reschedule request, admin-only review, notifications, clinic switch, RU/EN and mobile layout.",
   );
 } catch (e) {
   await page.screenshot({

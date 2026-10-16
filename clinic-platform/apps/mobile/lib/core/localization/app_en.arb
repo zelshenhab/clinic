@@ -197,5 +197,34 @@
   "signInToBook": "Sign in to book",
   "refreshAvailability": "Refresh available times",
   "bookingSuccess": "Appointment booked successfully",
-  "bookingReference": "Booking reference"
+  "bookingReference": "Booking reference",
+  "cancelAppointment": "Cancel appointment",
+  "rescheduleAppointment": "Reschedule appointment",
+  "noticeMinutes": "Changes require at least {minutes} minutes before your appointment. The clinic validates your request when you confirm.",
+  "nearestAvailable": "Find the nearest appointment",
+  "nearestHelp": "Search the next 14 days by specialty. Times are checked again when you book.",
+  "searchedUntil": "Searched through",
+  "searchLimited": "Results cover up to 200 doctor/service combinations. Narrow your specialty filter.",
+  "waitlist": "My waitlist",
+  "waitlistHelp": "We will notify you here when a time opens on this day. No time is reserved automatically.",
+  "waitlistEmpty": "You have no waitlist requests.",
+  "waitlistWaiting": "Waiting for availability",
+  "waitlistNotified": "Availability notification sent; check current times",
+  "joinWaitlist": "Notify me when a time opens",
+  "leaveWaitlist": "Leave waitlist",
+  "waitlistJoined": "You joined the waitlist",
+  "markRead": "Mark as read",
+  "readNotification": "Read",
+  "policyCutoff": "The clinic notice period has passed. Contact the clinic to change this appointment.",
+  "slotsAvailable": "A time is already available. Refresh and choose it to book.",
+  "arrived": "Arrived at clinic",
+  "waiting": "Waiting for consultation",
+  "inConsultation": "In consultation",
+  "@noticeMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  }
 }

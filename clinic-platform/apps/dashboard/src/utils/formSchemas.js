@@ -170,7 +170,7 @@ export const scheduleFormSchema = z
           })
           .refine((v) => v.ends_at > v.starts_at, { path: ["ends_at"] }),
       )
-      .max(100),
+      .max(400),
   })
   .superRefine((data, ctx) => {
     data.weekly.forEach((shift, index) => {

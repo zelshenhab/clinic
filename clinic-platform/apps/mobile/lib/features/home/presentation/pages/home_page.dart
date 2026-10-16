@@ -82,6 +82,11 @@ class _HomePageState extends State<HomePage> {
             ),
             const SizedBox(height: 8),
             Text(t.welcomeSubtitle),
+            TextButton.icon(
+              onPressed: () => context.push("/next-available"),
+              icon: const Icon(Icons.event_available),
+              label: Text(t.nearestAvailable),
+            ),
             const SizedBox(height: 24),
             if (state.clinicId != widget.clinic.id ||
                 state.status == CatalogStatus.initial ||

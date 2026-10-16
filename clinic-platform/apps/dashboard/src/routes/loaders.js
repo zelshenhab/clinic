@@ -1,5 +1,6 @@
 export const pageLoaders = {
   overview: () => import("../features/overview/OverviewPage"),
+  queue: () => import("../features/appointments/QueuePage"),
   appointments: () => import("../features/appointments/AppointmentsPage"),
   calendar: () => import("../features/appointments/CalendarPage"),
   catalog: () => import("../features/catalog/CatalogPage"),
@@ -11,7 +12,7 @@ export const pageLoaders = {
 };
 export function preloadPage(path, role) {
   const name =
-    role === "DOCTOR" && !["appointments", "calendar"].includes(path)
+    role === "DOCTOR" && !["appointments", "calendar", "queue"].includes(path)
       ? "doctor"
       : ["doctors", "specialties", "services", "promotions"].includes(path)
         ? "catalog"

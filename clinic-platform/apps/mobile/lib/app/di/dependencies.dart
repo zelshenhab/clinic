@@ -1,4 +1,7 @@
 import '../../features/appointments/domain/repositories/booking_repository.dart';
+import '../../features/appointments/domain/repositories/patient_tools_repository.dart';
+import '../../features/appointments/data/repositories/api_patient_tools_repository.dart';
+import '../../features/appointments/data/repositories/supabase_patient_updates.dart';
 import '../../features/appointments/data/repositories/api_booking_repository.dart';
 import '../../features/appointments/data/repositories/supabase_availability_updates.dart';
 import '../../features/appointments/presentation/bloc/booking_flow_cubit.dart';
@@ -78,6 +81,10 @@ Future<GetIt> configureDependencies(AppConfig config) async {
   di.registerSingleton<ApiClient>(
     ApiClient(config.apiUrl, auth: di<AuthRepository>()),
   );
+  di.registerSingleton<PatientToolsRepository>(
+    ApiPatientToolsRepository(di<ApiClient>()),
+  );
+  di.registerSingleton<PatientUpdates>(SupabasePatientUpdates(client));
   di.registerSingleton<BookingRepository>(
     ApiBookingRepository(di<ApiClient>()),
   );
@@ -128,6 +135,7 @@ Future<GetIt> configureDependencies(AppConfig config) async {
     () => AppointmentsCubit(
       di<ClinicScope>(),
       LoadAppointments(ApiAppointmentRepository(di<ApiClient>())),
+      updates: di<PatientUpdates>().watch,
     ),
   );
   di.registerSingleton<LoadHome>(LoadHome(ApiHomeRepository(di<ApiClient>())));
@@ -150,7 +158,11 @@ Future<GetIt> configureDependencies(AppConfig config) async {
     LoadNotifications(ApiNotificationRepository(di<ApiClient>())),
   );
   di.registerFactory<NotificationsCubit>(
-    () => NotificationsCubit(di<ClinicScope>(), di<LoadNotifications>()),
+    () => NotificationsCubit(
+      di<ClinicScope>(),
+      di<LoadNotifications>(),
+      updates: di<PatientUpdates>().watch,
+    ),
   );
   di.registerFactory<DoctorDetailCubit>(
     () => DoctorDetailCubit(di<ClinicScope>(), di<LoadDoctors>()),

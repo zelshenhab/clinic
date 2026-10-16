@@ -173,7 +173,7 @@ const fake = {
   },
   rpc: async (name: string, args: Record<string, unknown>) => {
     try {
-      if (!/^(admin|doctor|patient)_[a-z_]+$|^public_availability$/.test(name))
+      if (!/^(admin|doctor|patient)_[a-z_]+$|^(public_availability|booking_policy|next_available|clinic_queue|appointment_attendance)$/.test(name))
         throw Error("Unsupported test RPC");
       const keys = Object.keys(args);
       const sql = `select public.${name}(${keys.map((key, i) => `${key}=>$${i + 1}`).join(",")}) as data`;

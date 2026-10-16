@@ -1075,6 +1075,138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Booking reference'**
   String get bookingReference;
+
+  /// No description provided for @cancelAppointment.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel appointment'**
+  String get cancelAppointment;
+
+  /// No description provided for @rescheduleAppointment.
+  ///
+  /// In en, this message translates to:
+  /// **'Reschedule appointment'**
+  String get rescheduleAppointment;
+
+  /// No description provided for @noticeMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes require at least {minutes} minutes before your appointment. The clinic validates your request when you confirm.'**
+  String noticeMinutes(int minutes);
+
+  /// No description provided for @nearestAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Find the nearest appointment'**
+  String get nearestAvailable;
+
+  /// No description provided for @nearestHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Search the next 14 days by specialty. Times are checked again when you book.'**
+  String get nearestHelp;
+
+  /// No description provided for @searchedUntil.
+  ///
+  /// In en, this message translates to:
+  /// **'Searched through'**
+  String get searchedUntil;
+
+  /// No description provided for @searchLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Results cover up to 200 doctor/service combinations. Narrow your specialty filter.'**
+  String get searchLimited;
+
+  /// No description provided for @waitlist.
+  ///
+  /// In en, this message translates to:
+  /// **'My waitlist'**
+  String get waitlist;
+
+  /// No description provided for @waitlistHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'We will notify you here when a time opens on this day. No time is reserved automatically.'**
+  String get waitlistHelp;
+
+  /// No description provided for @waitlistEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'You have no waitlist requests.'**
+  String get waitlistEmpty;
+
+  /// No description provided for @waitlistWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for availability'**
+  String get waitlistWaiting;
+
+  /// No description provided for @waitlistNotified.
+  ///
+  /// In en, this message translates to:
+  /// **'Availability notification sent; check current times'**
+  String get waitlistNotified;
+
+  /// No description provided for @joinWaitlist.
+  ///
+  /// In en, this message translates to:
+  /// **'Notify me when a time opens'**
+  String get joinWaitlist;
+
+  /// No description provided for @leaveWaitlist.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave waitlist'**
+  String get leaveWaitlist;
+
+  /// No description provided for @waitlistJoined.
+  ///
+  /// In en, this message translates to:
+  /// **'You joined the waitlist'**
+  String get waitlistJoined;
+
+  /// No description provided for @markRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as read'**
+  String get markRead;
+
+  /// No description provided for @readNotification.
+  ///
+  /// In en, this message translates to:
+  /// **'Read'**
+  String get readNotification;
+
+  /// No description provided for @policyCutoff.
+  ///
+  /// In en, this message translates to:
+  /// **'The clinic notice period has passed. Contact the clinic to change this appointment.'**
+  String get policyCutoff;
+
+  /// No description provided for @slotsAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'A time is already available. Refresh and choose it to book.'**
+  String get slotsAvailable;
+
+  /// No description provided for @arrived.
+  ///
+  /// In en, this message translates to:
+  /// **'Arrived at clinic'**
+  String get arrived;
+
+  /// No description provided for @waiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for consultation'**
+  String get waiting;
+
+  /// No description provided for @inConsultation.
+  ///
+  /// In en, this message translates to:
+  /// **'In consultation'**
+  String get inConsultation;
 }
 
 class _AppLocalizationsDelegate

@@ -1,3 +1,5 @@
+import 'package:clinic_mobile/features/appointments/domain/repositories/patient_tools_repository.dart';
+import 'package:clinic_mobile/features/appointments/data/repositories/api_patient_tools_repository.dart';
 import 'package:clinic_mobile/features/appointments/presentation/bloc/booking_flow_cubit.dart';
 import 'package:clinic_mobile/features/appointments/data/repositories/api_booking_repository.dart';
 import 'package:clinic_mobile/features/appointments/data/repositories/supabase_availability_updates.dart';
@@ -70,6 +72,9 @@ void main() {
         scope,
       );
       final api = catalogClient(CatalogAdapter());
+      di.registerSingleton<PatientToolsRepository>(
+        ApiPatientToolsRepository(api),
+      );
       final doctors = LoadDoctors(ApiDoctorRepository(api)),
           specialties = LoadSpecialties(ApiSpecialtyRepository(api)),
           services = LoadServices(ApiServiceRepository(api));

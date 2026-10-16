@@ -526,4 +526,78 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get bookingReference => 'Booking reference';
+
+  @override
+  String get cancelAppointment => 'Cancel appointment';
+
+  @override
+  String get rescheduleAppointment => 'Reschedule appointment';
+
+  @override
+  String noticeMinutes(int minutes) {
+    return 'Changes require at least $minutes minutes before your appointment. The clinic validates your request when you confirm.';
+  }
+
+  @override
+  String get nearestAvailable => 'Find the nearest appointment';
+
+  @override
+  String get nearestHelp =>
+      'Search the next 14 days by specialty. Times are checked again when you book.';
+
+  @override
+  String get searchedUntil => 'Searched through';
+
+  @override
+  String get searchLimited =>
+      'Results cover up to 200 doctor/service combinations. Narrow your specialty filter.';
+
+  @override
+  String get waitlist => 'My waitlist';
+
+  @override
+  String get waitlistHelp =>
+      'We will notify you here when a time opens on this day. No time is reserved automatically.';
+
+  @override
+  String get waitlistEmpty => 'You have no waitlist requests.';
+
+  @override
+  String get waitlistWaiting => 'Waiting for availability';
+
+  @override
+  String get waitlistNotified =>
+      'Availability notification sent; check current times';
+
+  @override
+  String get joinWaitlist => 'Notify me when a time opens';
+
+  @override
+  String get leaveWaitlist => 'Leave waitlist';
+
+  @override
+  String get waitlistJoined => 'You joined the waitlist';
+
+  @override
+  String get markRead => 'Mark as read';
+
+  @override
+  String get readNotification => 'Read';
+
+  @override
+  String get policyCutoff =>
+      'The clinic notice period has passed. Contact the clinic to change this appointment.';
+
+  @override
+  String get slotsAvailable =>
+      'A time is already available. Refresh and choose it to book.';
+
+  @override
+  String get arrived => 'Arrived at clinic';
+
+  @override
+  String get waiting => 'Waiting for consultation';
+
+  @override
+  String get inConsultation => 'In consultation';
 }

@@ -187,7 +187,7 @@ export const scheduleSchema = z
           .strict()
           .refine((v) => Date.parse(v.ends_at) > Date.parse(v.starts_at)),
       )
-      .max(100),
+      .max(400),
   })
   .strict()
   .superRefine((v, ctx) => {

@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../core/localization/catalog_format.dart';
+import '../../domain/repositories/patient_tools_repository.dart';
+import '../../domain/repositories/booking_repository.dart';
+import 'appointment_actions.dart';
 import 'package:intl/intl.dart';
 import 'package:timezone/timezone.dart' as tz;
 import '../../../../core/widgets/scoped_list_view.dart';
@@ -13,8 +18,12 @@ class AppointmentsPage extends StatelessWidget {
     super.key,
     required this.clinicId,
     required this.timezone,
+    this.tools,
+    this.booking,
   });
   final String clinicId, timezone;
+  final PatientToolsRepository? tools;
+  final BookingRepository? booking;
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
@@ -23,7 +32,15 @@ class AppointmentsPage extends StatelessWidget {
       clinicId: clinicId,
       title: t.appointments,
       empty: t.noAppointments,
-      footer: Text(t.bookingDetails),
+      footer: Column(
+        children: [
+          Text(t.bookingDetails),
+          TextButton(
+            onPressed: () => context.push("/waitlist"),
+            child: Text(t.waitlist),
+          ),
+        ],
+      ),
       itemBuilder: (item) {
         final status = switch (item.status) {
           'pending' => t.pending,
@@ -51,6 +68,32 @@ class AppointmentsPage extends StatelessWidget {
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     Text(status),
+                    if (item.doctorName.isNotEmpty)
+                      Text(localized(item.doctorName, locale)),
+                    if (item.serviceName.isNotEmpty)
+                      Text(localized(item.serviceName, locale)),
+                    if (item.attendanceStatus != "scheduled")
+                      Text(switch (item.attendanceStatus) {
+                        "arrived" => t.arrived,
+                        "waiting" => t.waiting,
+                        "in_consultation" => t.inConsultation,
+                        "finished" => t.completed,
+                        _ => "",
+                      }),
+                    if (tools != null &&
+                        booking != null &&
+                        item.updatedAt != null &&
+                        item.doctorId != null &&
+                        item.serviceId != null &&
+                        item.startsAt.isAfter(DateTime.now()) &&
+                        ["pending", "confirmed"].contains(item.status) &&
+                        item.attendanceStatus == "scheduled")
+                      AppointmentActions(
+                        appointment: item,
+                        tools: tools!,
+                        booking: booking!,
+                        timezone: timezone,
+                      ),
                   ],
                 ),
               ),

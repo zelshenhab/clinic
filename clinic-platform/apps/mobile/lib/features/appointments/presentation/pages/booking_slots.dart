@@ -10,11 +10,21 @@ import '../../../../core/catalog/catalog_query.dart';
 import '../../../authentication/presentation/bloc/auth_cubit.dart';
 import '../../domain/entities/booking_context.dart';
 import '../bloc/booking_flow_cubit.dart';
+import '../../domain/repositories/patient_tools_repository.dart';
+import '../../../../core/errors/app_exception.dart';
 
 class BookingSlots extends StatefulWidget {
-  const BookingSlots({super.key, required this.data, required this.query});
+  const BookingSlots({
+    super.key,
+    required this.data,
+    required this.query,
+    this.tools,
+    this.initialDate,
+  });
   final BookingContext data;
   final CatalogQuery query;
+  final PatientToolsRepository? tools;
+  final String? initialDate;
   @override
   State<BookingSlots> createState() => _BookingSlotsState();
 }
@@ -22,12 +32,21 @@ class BookingSlots extends StatefulWidget {
 class _BookingSlotsState extends State<BookingSlots>
     with WidgetsBindingObserver {
   late DateTime day;
+  String? joinedDay;
+  bool joining = false;
+  FailureKind? waitFailure;
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     final now = tz.TZDateTime.now(tz.getLocation(widget.data.clinic.timezone));
     day = DateTime(now.year, now.month, now.day);
+    final initial = DateTime.tryParse(widget.initialDate ?? "");
+    if (initial != null &&
+        !initial.isBefore(day) &&
+        !initial.isAfter(day.add(const Duration(days: 180)))) {
+      day = initial;
+    }
   }
 
   @override
@@ -125,6 +144,67 @@ class _BookingSlotsState extends State<BookingSlots>
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 child: Text(t.noAvailableTimes),
               ),
+            if (!state.loading &&
+                state.failure == null &&
+                state.slots.isEmpty &&
+                widget.tools != null) ...[
+              Text(t.waitlistHelp),
+              OutlinedButton(
+                onPressed:
+                    joining || joinedDay == DateFormat('yyyy-MM-dd').format(day)
+                    ? null
+                    : () async {
+                        if (!signedIn) {
+                          context.go(
+                            Uri(
+                              path: '/login',
+                              queryParameters: {
+                                ...widget.query.parameters,
+                                'date': DateFormat('yyyy-MM-dd').format(day),
+                                'from': 'booking',
+                              },
+                            ).toString(),
+                          );
+                          return;
+                        }
+                        setState(() {
+                          joining = true;
+                          waitFailure = null;
+                        });
+                        try {
+                          final d = widget.data;
+                          await widget.tools!.joinWaitlist(
+                            d.clinic.id,
+                            d.doctor!.id,
+                            d.service!.id,
+                            DateFormat('yyyy-MM-dd').format(day),
+                          );
+                          if (mounted) {
+                            setState(
+                              () => joinedDay = DateFormat(
+                                'yyyy-MM-dd',
+                              ).format(day),
+                            );
+                          }
+                        } on AppException catch (e) {
+                          if (mounted) setState(() => waitFailure = e.kind);
+                        } finally {
+                          if (mounted) setState(() => joining = false);
+                        }
+                      },
+                child: Text(
+                  joinedDay == DateFormat('yyyy-MM-dd').format(day)
+                      ? t.waitlistJoined
+                      : t.joinWaitlist,
+                ),
+              ),
+              if (waitFailure != null) Text(failureMessage(t, waitFailure)),
+              if (signedIn)
+                TextButton(
+                  onPressed: () => context.push('/waitlist'),
+                  child: Text(t.waitlist),
+                ),
+            ],
             Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -192,6 +272,7 @@ class _BookingSlotsState extends State<BookingSlots>
                             queryParameters: {
                               ...widget.query.parameters,
                               'from': 'booking',
+                              'date': DateFormat('yyyy-MM-dd').format(day),
                             },
                           ).toString(),
                         );

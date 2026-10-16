@@ -525,4 +525,78 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get bookingReference => 'Номер записи';
+
+  @override
+  String get cancelAppointment => 'Отменить запись';
+
+  @override
+  String get rescheduleAppointment => 'Перенести запись';
+
+  @override
+  String noticeMinutes(int minutes) {
+    return 'Изменения возможны не позднее чем за $minutes мин. до приёма. Клиника проверит запрос при подтверждении.';
+  }
+
+  @override
+  String get nearestAvailable => 'Найти ближайшую запись';
+
+  @override
+  String get nearestHelp =>
+      'Поиск по специальности на ближайшие 14 дней. Время проверяется повторно при записи.';
+
+  @override
+  String get searchedUntil => 'Поиск до';
+
+  @override
+  String get searchLimited =>
+      'Поиск ограничен 200 комбинациями врача и услуги. Уточните специальность.';
+
+  @override
+  String get waitlist => 'Мой список ожидания';
+
+  @override
+  String get waitlistHelp =>
+      'Мы уведомим вас здесь, когда в этот день появится время. Оно не бронируется автоматически.';
+
+  @override
+  String get waitlistEmpty => 'У вас нет заявок в списке ожидания.';
+
+  @override
+  String get waitlistWaiting => 'Ожидается свободное время';
+
+  @override
+  String get waitlistNotified =>
+      'Отправлено уведомление; проверьте актуальное время';
+
+  @override
+  String get joinWaitlist => 'Сообщить о свободном времени';
+
+  @override
+  String get leaveWaitlist => 'Уйти из списка ожидания';
+
+  @override
+  String get waitlistJoined => 'Вы в списке ожидания';
+
+  @override
+  String get markRead => 'Отметить прочитанным';
+
+  @override
+  String get readNotification => 'Прочитано';
+
+  @override
+  String get policyCutoff =>
+      'Срок отмены или переноса истёк. Свяжитесь с клиникой.';
+
+  @override
+  String get slotsAvailable =>
+      'Свободное время уже есть. Обновите список и выберите время.';
+
+  @override
+  String get arrived => 'Вы прибыли в клинику';
+
+  @override
+  String get waiting => 'Ожидается приём';
+
+  @override
+  String get inConsultation => 'На приёме';
 }

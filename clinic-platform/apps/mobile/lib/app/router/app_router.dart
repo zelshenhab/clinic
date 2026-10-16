@@ -1,4 +1,7 @@
 import '../../features/appointments/presentation/bloc/booking_flow_cubit.dart';
+import '../../features/appointments/domain/repositories/patient_tools_repository.dart';
+import '../../features/appointments/domain/repositories/booking_repository.dart';
+import '../../features/appointments/presentation/pages/patient_tools_pages.dart';
 import '../../features/clinic_selection/domain/entities/clinic.dart';
 import '../../core/catalog/catalog_query.dart';
 import '../../core/widgets/catalog_image.dart';
@@ -83,6 +86,7 @@ GoRouter createRouter(GetIt di, RouterRefresh refresh) => GoRouter(
         const [
           'appointments',
           'notifications',
+          'waitlist',
         ].contains(state.uri.queryParameters['from'])) {
       return '/${state.uri.queryParameters['from']}';
     }
@@ -103,12 +107,32 @@ GoRouter createRouter(GetIt di, RouterRefresh refresh) => GoRouter(
         const [
           'appointments',
           'notifications',
+          'waitlist',
         ].contains(state.uri.queryParameters['from'])) {
       return '/profile-completion?from=${state.uri.queryParameters['from']}';
     }
     return redirect;
   },
   routes: [
+    GoRoute(
+      path: '/next-available',
+      builder: (_, _) => clinicRoute(
+        (clinic) => NearestPage(
+          clinicId: clinic.id,
+          timezone: clinic.timezone,
+          tools: di<PatientToolsRepository>(),
+        ),
+      ),
+    ),
+    GoRoute(
+      path: '/waitlist',
+      builder: (_, _) => clinicRoute(
+        (clinic) => WaitlistPage(
+          clinicId: clinic.id,
+          tools: di<PatientToolsRepository>(),
+        ),
+      ),
+    ),
     GoRoute(path: '/splash', builder: (_, _) => const SplashPage()),
     GoRoute(path: '/clinics', builder: (_, _) => const ClinicSelectionPage()),
     GoRoute(
@@ -197,7 +221,10 @@ GoRouter createRouter(GetIt di, RouterRefresh refresh) => GoRouter(
       builder: (_, _) => clinicRoute(
         (clinic) => BlocProvider(
           create: (_) => di<NotificationsCubit>(),
-          child: NotificationsPage(clinicId: clinic.id),
+          child: NotificationsPage(
+            clinicId: clinic.id,
+            tools: di<PatientToolsRepository>(),
+          ),
         ),
       ),
     ),
@@ -212,6 +239,8 @@ GoRouter createRouter(GetIt di, RouterRefresh refresh) => GoRouter(
               key: ValueKey(state.uri.toString()),
               clinicId: clinic.id,
               query: routeQuery(state),
+              tools: di<PatientToolsRepository>(),
+              initialDate: state.uri.queryParameters["date"],
             ),
           ),
         ),
@@ -250,6 +279,8 @@ GoRouter createRouter(GetIt di, RouterRefresh refresh) => GoRouter(
               child: AppointmentsPage(
                 clinicId: clinic.id,
                 timezone: clinic.timezone,
+                tools: di<PatientToolsRepository>(),
+                booking: di<BookingRepository>(),
               ),
             ),
           ),

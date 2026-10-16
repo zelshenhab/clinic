@@ -9,6 +9,8 @@ export function navigationReads(path, clinic, access) {
     own = (p, q = {}) => doctorQueryOptions(clinic, access, p, q),
     list = { search: "", page: 1, limit: 20 },
     today = clinicNow(clinic.timezone);
+  if (path === "queue")
+    return [admin("queue", { day: clinicNow(clinic.timezone).toISODate() })];
   if (path === "appointments")
     return [admin("appointments", list), admin("filter-options")];
   if (path === "calendar") {

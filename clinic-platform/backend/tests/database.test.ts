@@ -1338,3 +1338,495 @@ it("late-night availability includes bookings ending exactly at midnight and pro
       booked.id,
     );
   }));
+
+const experience = async (name: string, args: unknown[]) =>
+  (
+    await db.query<any>(
+      `select public.${name}(${args.map((_, i) => "$" + (i + 1)).join(",")}) result`,
+      args,
+    )
+  ).rows[0].result;
+it("applies patient notice policy, optimistic versions, availability and ownership atomically", () =>
+  doctorFixture(async ({ own, foreign }) => {
+    await experience("admin_booking_policy", [
+      actor,
+      clinic,
+      JSON.stringify({
+        cancellation_notice_minutes: 0,
+        reschedule_notice_minutes: 0,
+      }),
+    ]);
+    await expect(
+      experience("patient_change", [
+        foreignPatient,
+        clinic,
+        own.id,
+        own.updated_at,
+        null,
+      ]),
+    ).rejects.toThrow("NOT_FOUND");
+    const date = new Date(own.starts_at).toISOString().slice(0, 10);
+    const slots = await experience("public_availability", [
+      clinic,
+      doctor,
+      service,
+      date,
+    ]);
+    expect(slots.length).toBeGreaterThan(0);
+    await experience("admin_book", [
+      actor,
+      clinic,
+      JSON.stringify({
+        doctor_id: doctor,
+        service_id: service,
+        patient_id: foreignPatient,
+        starts_at: slots[0].starts_at,
+      }),
+    ]);
+    await expect(
+      experience("patient_change", [
+        ownPatient,
+        clinic,
+        own.id,
+        own.updated_at,
+        slots[0].starts_at,
+      ]),
+    ).rejects.toThrow("SLOT_UNAVAILABLE");
+    const moved = await experience("patient_change", [
+      ownPatient,
+      clinic,
+      own.id,
+      own.updated_at,
+      slots.at(-1).starts_at,
+    ]);
+    expect(new Date(moved.starts_at).toISOString()).toBe(
+      new Date(slots.at(-1).starts_at).toISOString(),
+    );
+    expect(Number(moved.price_rub)).toBe(Number(own.price_rub));
+    const blocked = await db.query<any>(
+      `update public.booking_policies set cancellation_notice_minutes=10080 where clinic_id=$1`,
+      [clinic],
+    );
+    // Stale writes are rejected even if the previous time remains available.
+    await expect(
+      experience("patient_change", [
+        ownPatient,
+        clinic,
+        own.id,
+        "2000-01-01T00:00:00Z",
+        null,
+      ]),
+    ).rejects.toThrow("STALE_APPOINTMENT");
+    const same = await db.query<any>(
+      "select status,starts_at from public.appointments where id=$1",
+      [foreign.id],
+    );
+    expect(same.rows[0].status).toBe("confirmed");
+    expect(blocked.rows).toEqual([]);
+  }));
+it("enforces cancellation cutoff on an imminent appointment and sends patient-owned notices", () =>
+  doctorFixture(async ({ past }) => {
+    const a = (
+      await db.query<any>(
+        `update public.appointments set starts_at=now()+interval '1 hour',ends_at=now()+interval '90 minutes' where id=$1 returning *`,
+        [past.id],
+      )
+    ).rows[0];
+    await expect(
+      experience("patient_change", [
+        ownPatient,
+        clinic,
+        a.id,
+        a.updated_at,
+        null,
+      ]),
+    ).rejects.toThrow("POLICY_CUTOFF");
+    await experience("admin_booking_policy", [
+      actor,
+      clinic,
+      JSON.stringify({
+        cancellation_notice_minutes: 0,
+        reschedule_notice_minutes: 0,
+      }),
+    ]);
+    await experience("patient_change", [
+      ownPatient,
+      clinic,
+      a.id,
+      a.updated_at,
+      null,
+    ]);
+    const n = (
+      await db.query<any>(
+        `select * from public.notifications where appointment_id=$1 and kind='cancelled'`,
+        [a.id],
+      )
+    ).rows[0];
+    expect(n.user_id).toBe(ownPatient);
+    await expect(
+      experience("patient_read_notification", [foreignPatient, clinic, n.id]),
+    ).rejects.toThrow("NOT_FOUND");
+    expect(
+      (
+        await experience("patient_read_notification", [
+          ownPatient,
+          clinic,
+          n.id,
+        ])
+      ).read_at,
+    ).toBeTruthy();
+    const messages = (
+      await db.query<any>(
+        `select payload from realtime.messages where payload->>'notification_id'=$1`,
+        [n.id],
+      )
+    ).rows;
+    expect(messages).toHaveLength(2);
+    expect(Object.keys(messages[0].payload).sort()).toEqual([
+      "clinic_id",
+      "event_id",
+      "notification_id",
+    ]);
+  }));
+it("separates receptionist arrivals and doctor consultations, scopes queues and audits each transition", () =>
+  doctorFixture(async ({ past, foreign }) => {
+    const reception = "71000000-0000-4000-8000-000000000001";
+    await db.query(`insert into auth.users(id) values($1)`, [reception]);
+    await db.query(
+      `insert into public.staff_memberships(user_id,clinic_id,role) values($1,$2,'RECEPTIONIST')`,
+      [reception, clinic],
+    );
+    const day = (
+      await db.query<any>(
+        `select ($1::timestamptz at time zone (select timezone from public.clinics where id=$2))::date::text as day`,
+        [past.starts_at, clinic],
+      )
+    ).rows[0].day;
+    let a = await experience("appointment_attendance", [
+      reception,
+      clinic,
+      past.id,
+      "arrived",
+      past.updated_at,
+      false,
+    ]);
+    expect(a.arrived_at).toBeTruthy();
+    await expect(
+      experience("appointment_attendance", [
+        reception,
+        clinic,
+        a.id,
+        "in_consultation",
+        a.updated_at,
+        false,
+      ]),
+    ).rejects.toThrow("FORBIDDEN");
+    a = await experience("appointment_attendance", [
+      reception,
+      clinic,
+      a.id,
+      "waiting",
+      a.updated_at,
+      false,
+    ]);
+    a = await experience("appointment_attendance", [
+      workspaceDoctorUser,
+      clinic,
+      a.id,
+      "in_consultation",
+      a.updated_at,
+      true,
+    ]);
+    a = await experience("appointment_attendance", [
+      workspaceDoctorUser,
+      clinic,
+      a.id,
+      "finished",
+      a.updated_at,
+      true,
+    ]);
+    expect(a.status).toBe("completed");
+    const q = await experience("clinic_queue", [
+      workspaceDoctorUser,
+      clinic,
+      day,
+      true,
+    ]);
+    expect(q.items.map((a: any) => a.id)).toContain(past.id);
+    expect(q.items.every((a: any) => a.doctor_id === doctor)).toBe(true);
+    await expect(
+      experience("appointment_attendance", [
+        workspaceDoctorUser,
+        clinic,
+        foreign.id,
+        "in_consultation",
+        foreign.updated_at,
+        true,
+      ]),
+    ).rejects.toThrow("FORBIDDEN");
+    expect(
+      (
+        await db.query<any>(
+          "select count(*)::int n from public.appointment_attendance_history where appointment_id=$1",
+          [past.id],
+        )
+      ).rows[0].n,
+    ).toBe(4);
+  }));
+it("copies a doctor's week including breaks, blocks vacations and protects booked periods", () =>
+  doctorFixture(async ({ own }) => {
+    const days = (
+      await db.query<any>(
+        `select date_trunc('week',current_date+7)::date::text source,date_trunc('week',current_date+35)::date::text target`,
+      )
+    ).rows[0];
+    await experience("doctor_copy_week", [
+      workspaceDoctorUser,
+      clinic,
+      days.source,
+      days.target,
+    ]);
+    const schedule = await doctorRead("schedule");
+    expect(schedule.exceptions.some((e: any) => e.available)).toBe(true);
+    expect(schedule.exceptions.some((e: any) => !e.available)).toBe(true);
+    const targetSlots = await experience("public_availability", [
+      clinic,
+      doctor,
+      service,
+      days.target,
+    ]);
+    expect(targetSlots.length).toBeGreaterThan(0);
+    await expect(
+      experience("doctor_block_period", [
+        workspaceDoctorUser,
+        clinic,
+        own.starts_at,
+        own.ends_at,
+      ]),
+    ).rejects.toThrow("SCHEDULE_CONFLICT");
+    const from = targetSlots[0].starts_at,
+      to = targetSlots[0].ends_at;
+    await experience("doctor_block_period", [
+      workspaceDoctorUser,
+      clinic,
+      from,
+      to,
+    ]);
+    expect(
+      (
+        await experience("public_availability", [
+          clinic,
+          doctor,
+          service,
+          days.target,
+        ])
+      ).some((s: any) => s.starts_at === from),
+    ).toBe(false);
+  }));
+it("waitlist offers are durable and idempotent without reserving slots, and rejoining creates a new offer", () =>
+  doctorFixture(async () => {
+    const day = (await db.query<any>(`select (current_date+15)::text as day`))
+      .rows[0].day;
+    const zone = (
+      await db.query<any>("select timezone from public.clinics where id=$1", [
+        clinic,
+      ])
+    ).rows[0].timezone;
+    await db.query(
+      `insert into public.schedule_exceptions(clinic_id,doctor_id,starts_at,ends_at,available) values($1,$2,$3::date::timestamp at time zone $4,($3::date+1)::timestamp at time zone $4,false)`,
+      [clinic, doctor, day, zone],
+    );
+    const w = await experience("patient_waitlist", [
+      ownPatient,
+      clinic,
+      JSON.stringify({ doctor_id: doctor, service_id: service, day }),
+    ]);
+    expect(w.state).toBe("waiting");
+    await expect(
+      experience("patient_waitlist", [
+        foreignPatient,
+        clinic,
+        JSON.stringify({ id: w.id }),
+      ]),
+    ).rejects.toThrow("NOT_FOUND");
+    await db.query(
+      `insert into public.schedule_exceptions(clinic_id,doctor_id,starts_at,ends_at,available) values($1,$2,($3::date+time '09:00') at time zone $4,($3::date+time '10:00') at time zone $4,true)`,
+      [clinic, doctor, day, zone],
+    );
+    // Closed exceptions take precedence: remove the original closed interval to open the day.
+    await db.query(
+      `delete from public.schedule_exceptions where clinic_id=$1 and doctor_id=$2 and not available and starts_at=$3::date::timestamp at time zone $4`,
+      [clinic, doctor, day, zone],
+    );
+    const before = (
+      await db.query<any>("select count(*)::int n from public.appointments")
+    ).rows[0].n;
+    await experience("process_patient_jobs", []);
+    await experience("process_patient_jobs", []);
+    const n = (
+      await db.query<any>(
+        `select count(*)::int n from public.notifications where user_id=$1 and kind='waitlist'`,
+        [ownPatient],
+      )
+    ).rows[0].n;
+    expect(n).toBe(1);
+    expect(
+      (await db.query<any>("select count(*)::int n from public.appointments"))
+        .rows[0].n,
+    ).toBe(before);
+    await expect(
+      experience("patient_waitlist", [
+        ownPatient,
+        clinic,
+        JSON.stringify({ doctor_id: doctor, service_id: service, day }),
+      ]),
+    ).rejects.toThrow("SLOT_ALREADY_AVAILABLE");
+  }));
+it("creates due reminders only once and skips cancelled appointments", () =>
+  doctorFixture(async ({ past }) => {
+    await db.query(
+      `update public.appointments set created_at=now()-interval '2 days',starts_at=now()+interval '30 minutes',ends_at=now()+interval '1 hour' where id=$1`,
+      [past.id],
+    );
+    await experience("process_patient_jobs", []);
+    await experience("process_patient_jobs", []);
+    const notices = (
+      await db.query<any>(
+        `select * from public.notifications where appointment_id=$1 and kind='reminder'`,
+        [past.id],
+      )
+    ).rows;
+    expect(notices).toHaveLength(1);
+    await db.query(
+      `update public.appointments set status='cancelled',starts_at=starts_at+interval '1 minute',ends_at=ends_at+interval '1 minute' where id=$1`,
+      [past.id],
+    );
+    await experience("process_patient_jobs", []);
+    expect(
+      (
+        await db.query<any>(
+          `select * from public.notifications where appointment_id=$1 and kind='reminder'`,
+          [past.id],
+        )
+      ).rows,
+    ).toHaveLength(1);
+  }));
+it("nearest search returns scoped sorted bookable times and browser roles cannot invoke privileged RPCs", () =>
+  doctorFixture(async () => {
+    const results = await experience("next_available", [
+      clinic,
+      null,
+      service,
+      null,
+      3,
+    ]);
+    expect(results.items.length).toBeGreaterThan(0);
+    expect(
+      results.items.every(
+        (i: any) => i.clinic_id === clinic && i.service_id === service,
+      ),
+    ).toBe(true);
+    const starts = results.items.map((i: any) => i.starts_at);
+    expect(starts).toEqual([...starts].sort());
+    for (const i of results.items)
+      expect(
+        (
+          await db.query<any>(
+            "select public.booking_slot_valid($1,$2,$3,$4) valid",
+            [clinic, i.doctor_id, i.service_id, i.starts_at],
+          )
+        ).rows[0].valid,
+      ).toBe(true);
+    const grants = (
+      await db.query<any>(
+        `select has_function_privilege('authenticated','public.process_patient_jobs()','execute') jobs,has_table_privilege('authenticated','public.appointment_waitlist','select') waitlist,has_function_privilege('anon','public.next_available(uuid,uuid,uuid,date,integer)','execute') nearest`,
+      )
+    ).rows[0];
+    expect(grants).toEqual({ jobs: false, waitlist: false, nearest: false });
+  }));
+it("rejoining a waitlist creates a new offer generation and listing includes clinic-local doctor/service labels", () =>
+  doctorFixture(async () => {
+    const day = (await db.query<any>(`select (current_date+16)::text as day`))
+      .rows[0].day;
+    const zone = (
+      await db.query<any>("select timezone from public.clinics where id=$1", [
+        clinic,
+      ])
+    ).rows[0].timezone;
+    async function closeDay() {
+      await db.query(
+        `insert into public.schedule_exceptions(clinic_id,doctor_id,starts_at,ends_at,available) values($1,$2,$3::date::timestamp at time zone $4,($3::date+1)::timestamp at time zone $4,false)`,
+        [clinic, doctor, day, zone],
+      );
+    }
+    async function openDay() {
+      await db.query(
+        `delete from public.schedule_exceptions where clinic_id=$1 and doctor_id=$2 and starts_at=$3::date::timestamp at time zone $4 and not available`,
+        [clinic, doctor, day, zone],
+      );
+      await db.query(
+        `insert into public.schedule_exceptions(clinic_id,doctor_id,starts_at,ends_at,available) values($1,$2,($3::date+time '09:00') at time zone $4,($3::date+time '10:00') at time zone $4,true)`,
+        [clinic, doctor, day, zone],
+      );
+    }
+    const input = JSON.stringify({
+      doctor_id: doctor,
+      service_id: service,
+      day,
+    });
+    await closeDay();
+    const w = await experience("patient_waitlist", [ownPatient, clinic, input]);
+    await openDay();
+    await experience("process_patient_jobs", []);
+    await closeDay();
+    const rejoined = await experience("patient_waitlist", [
+      ownPatient,
+      clinic,
+      input,
+    ]);
+    expect(rejoined.id).toBe(w.id);
+    expect(rejoined.offer_version).toBe(2);
+    await openDay();
+    await experience("process_patient_jobs", []);
+    expect(
+      (
+        await db.query<any>(
+          `select count(*)::int n from public.notifications where user_id=$1 and kind='waitlist'`,
+          [ownPatient],
+        )
+      ).rows[0].n,
+    ).toBe(2);
+    const list = await experience("patient_waitlist", [
+      ownPatient,
+      clinic,
+      null,
+    ]);
+    expect(list[0].doctor_name.en).toBeTruthy();
+    expect(list[0].service_name.en).toBeTruthy();
+    await experience("patient_waitlist", [
+      ownPatient,
+      clinic,
+      JSON.stringify({ id: w.id }),
+    ]);
+    expect(
+      (await experience("patient_waitlist", [ownPatient, clinic, null]))[0]
+        .state,
+    ).toBe("cancelled");
+  }));
+it("delivers the 24-hour reminder before the 1-hour window with an idempotent event key", () =>
+  doctorFixture(async ({ past }) => {
+    await db.query(
+      `update public.appointments set created_at=now()-interval '2 days',starts_at=now()+interval '23 hours',ends_at=now()+interval '23 hours 30 minutes' where id=$1`,
+      [past.id],
+    );
+    await experience("process_patient_jobs", []);
+    await experience("process_patient_jobs", []);
+    const rows = (
+      await db.query<any>(
+        `select event_key from public.notifications where appointment_id=$1 and kind='reminder'`,
+        [past.id],
+      )
+    ).rows;
+    expect(rows).toHaveLength(1);
+    expect(rows[0].event_key).toContain(":reminder:24:");
+  }));

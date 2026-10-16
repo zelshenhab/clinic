@@ -33,7 +33,7 @@ export function patientRepository(db: SupabaseClient): PatientRepository {
     notifications: async (userId, clinicId) => {
       const { data, error } = await db
         .from("notifications")
-        .select("id,clinic_id,title,body,created_at,read_at")
+        .select("id,clinic_id,title,body,created_at,read_at,appointment_id,kind,context")
         .eq("user_id", userId)
         .eq("clinic_id", clinicId)
         .order("created_at", { ascending: false })
@@ -64,8 +64,8 @@ export function patientRepository(db: SupabaseClient): PatientRepository {
     },
     appointments: async (userId, clinicId) => {
       const { data, error } = await db
-        .from("appointments")
-        .select("id,clinic_id,doctor_id,service_id,starts_at,ends_at,status")
+        .from("admin_appointments")
+        .select("id,clinic_id,doctor_id,service_id,starts_at,ends_at,status,updated_at,doctor_name,service_name,attendance_status")
         .eq("patient_id", userId)
         .eq("clinic_id", clinicId)
         .order("starts_at");

@@ -1,5 +1,35 @@
 export const translations = {
   ru: {
+    queue: "Очередь приёма",
+    queueHelp:
+      "Регистратура отмечает прибытие, врач начинает и завершает приём. Обновления приходят автоматически.",
+    queueTruncated: "Показаны первые 100 записей.",
+    scheduled: "Ожидается",
+    arrived: "Прибыл",
+    waiting: "Ожидает приёма",
+    in_consultation: "На приёме",
+    finished: "Приём завершён",
+    confirmAction: "Подтвердить действие?",
+    bookingPolicy: "Правила отмены и переноса",
+    bookingPolicyHelp:
+      "Минимальное время до приёма в минутах. 0 — без ограничения по сроку, максимум 7 дней.",
+    cancellation_notice_minutes: "Отмена: минимум минут до приёма",
+    reschedule_notice_minutes: "Перенос: минимум минут до приёма",
+    scheduleTools: "Быстрые действия с расписанием",
+    scheduleToolsHelp:
+      "Недели считаются с понедельника по часовому поясу клиники. Копируются рабочие интервалы, перерывы и исключения. Записи пациентов защищены.",
+    sourceWeek: "Исходная неделя",
+    targetWeek: "Целевая неделя",
+    copyWeek: "Копировать неделю",
+    copyWeekConfirm: "Заменить доступность целевой недели?",
+    blockDay: "Добавить выходной",
+    blockPeriod: "Добавить отпуск",
+    vacationFrom: "Начало отсутствия",
+    vacationTo: "Конец отсутствия",
+    POLICY_CUTOFF: "Срок отмены или переноса истёк.",
+    SLOT_ALREADY_AVAILABLE:
+      "Уже есть свободное время. Выберите его для записи.",
+
     partlyAvailable: "Частично",
     hourlyAvailability: "Доступность: все 24 часа",
     hourlyHelp:
@@ -329,6 +359,35 @@ export const translations = {
       "Изображение загружено. Сохраните форму, чтобы применить его.",
   },
   en: {
+    queue: "Arrival queue",
+    queueHelp:
+      "Reception records arrivals; doctors start and finish consultations. Changes update automatically.",
+    queueTruncated: "Showing the first 100 appointments.",
+    scheduled: "Scheduled",
+    arrived: "Arrived",
+    waiting: "Waiting",
+    in_consultation: "In consultation",
+    finished: "Finished",
+    confirmAction: "Confirm this action?",
+    bookingPolicy: "Cancellation and rescheduling policy",
+    bookingPolicyHelp:
+      "Minimum notice in minutes. 0 permits changes until the appointment starts; maximum 7 days.",
+    cancellation_notice_minutes: "Cancellation: minimum notice (minutes)",
+    reschedule_notice_minutes: "Rescheduling: minimum notice (minutes)",
+    scheduleTools: "Schedule tools",
+    scheduleToolsHelp:
+      "Weeks start on Monday in the clinic timezone. Copy working hours, breaks and exceptions. Existing appointments are protected.",
+    sourceWeek: "Source week",
+    targetWeek: "Target week",
+    copyWeek: "Copy week",
+    copyWeekConfirm: "Replace availability for the target week?",
+    blockDay: "Block day",
+    blockPeriod: "Block period",
+    vacationFrom: "Absent from",
+    vacationTo: "Absent until",
+    POLICY_CUTOFF: "The clinic notice period has passed.",
+    SLOT_ALREADY_AVAILABLE: "Slots are already available. Select one to book.",
+
     partlyAvailable: "Partly available",
     hourlyAvailability: "Availability: all 24 hours",
     hourlyHelp:

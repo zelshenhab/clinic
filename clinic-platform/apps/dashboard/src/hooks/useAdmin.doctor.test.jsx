@@ -88,3 +88,26 @@ it("doctor status action uses restricted doctor status endpoint and invalidates 
   hook.unmount();
   client.clear();
 });
+it("doctor arrival queue mutations use the own-doctor attendance endpoint with a row version", async () => {
+  const { client, wrapper } = setup();
+  const hook = renderHook(
+    () => useAdminMutation("appointments/appointment-a/attendance", "patch"),
+    { wrapper },
+  );
+  await act(async () => {
+    await hook.result.current.mutateAsync({
+      status: "in_consultation",
+      expected_updated_at: "version",
+    });
+  });
+  expect(api.patch).toHaveBeenCalledWith(
+    "/doctor/appointments/appointment-a/attendance",
+    {
+      clinic_id: "clinic-a",
+      status: "in_consultation",
+      expected_updated_at: "version",
+    },
+  );
+  hook.unmount();
+  client.clear();
+});

@@ -319,3 +319,109 @@ it("doctor schedule API accepts a full-day end boundary and late-night working h
     expect.objectContaining({ p_input: schedule }),
   );
 });
+it("public nearest search and policies reject identity injection and validate filters", async () => {
+  const { app, rpc } = fixture();
+  expect(
+    (
+      await request(app).get(
+        `/api/v1/clinics/${clinic}/next-available?patient_id=${actor}`,
+      )
+    ).status,
+  ).toBe(400);
+  expect(rpc).not.toHaveBeenCalled();
+  expect(
+    (
+      await request(app).get(
+        `/api/v1/clinics/${clinic}/next-available?limit=3&specialty_id=${service}`,
+      )
+    ).status,
+  ).toBe(200);
+  expect(rpc).toHaveBeenLastCalledWith("next_available", {
+    p_clinic: clinic,
+    p_specialty: service,
+    p_service: null,
+    p_from: null,
+    p_limit: 3,
+  });
+  expect(
+    (await request(app).get(`/api/v1/clinics/${clinic}/booking-policy`)).status,
+  ).toBe(200);
+});
+it("patient tools require verified sessions and never accept an injected patient identity", async () => {
+  const { app, rpc } = fixture();
+  const base = `/api/v1/clinics/${clinic}/booking`;
+  expect((await request(app).get(`${base}/waitlist`)).status).toBe(401);
+  expect(
+    (
+      await request(app)
+        .post(`${base}/waitlist`)
+        .set("Authorization", "Bearer verified")
+        .send({
+          doctor_id: doctor,
+          service_id: service,
+          day: "2026-12-01",
+          patient_id: actor,
+        })
+    ).status,
+  ).toBe(400);
+  expect(rpc).not.toHaveBeenCalled();
+  expect(
+    (
+      await request(app)
+        .post(`${base}/appointments/${doctor}/reschedule`)
+        .set("Authorization", "Bearer verified")
+        .send({
+          starts_at: "2026-12-01T06:00:00Z",
+          expected_updated_at: "2026-10-16T09:00:00Z",
+        })
+    ).status,
+  ).toBe(200);
+  expect(rpc).toHaveBeenLastCalledWith("patient_change", {
+    p_actor: actor,
+    p_clinic: clinic,
+    p_id: doctor,
+    p_expected: "2026-10-16T09:00:00Z",
+    p_start: "2026-12-01T06:00:00Z",
+  });
+});
+it("queue, attendance and schedule shortcuts validate payloads and dispatch verified doctor context", async () => {
+  const { app, rpc } = fixture("DOCTOR");
+  expect(
+    (
+      await request(app)
+        .get(`/api/v1/doctor/queue?clinic_id=${clinic}&day=2026-12-01`)
+        .set("Authorization", "Bearer verified")
+    ).status,
+  ).toBe(200);
+  expect(rpc).toHaveBeenLastCalledWith("clinic_queue", {
+    p_actor: actor,
+    p_clinic: clinic,
+    p_day: "2026-12-01",
+    p_doctor_only: true,
+  });
+  expect(
+    (
+      await request(app)
+        .patch(`/api/v1/doctor/appointments/${service}/attendance`)
+        .set("Authorization", "Bearer verified")
+        .send({
+          clinic_id: clinic,
+          status: "arrived",
+          expected_updated_at: "2026-10-16T09:00:00Z",
+        })
+    ).status,
+  ).toBe(400);
+  expect(
+    (
+      await request(app)
+        .post("/api/v1/doctor/schedule/copy")
+        .set("Authorization", "Bearer verified")
+        .send({
+          clinic_id: clinic,
+          source: "2026-12-01",
+          target: "2026-12-08",
+          doctor_id: doctor,
+        })
+    ).status,
+  ).toBe(400);
+});

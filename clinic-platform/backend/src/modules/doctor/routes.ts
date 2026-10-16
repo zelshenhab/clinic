@@ -176,6 +176,72 @@ export function doctorRoutes(db: SupabaseClient) {
       }),
     );
   });
+  router.get("/queue", async (req, res) => {
+    const q = z
+      .object({ clinic_id: uuid, day: z.iso.date() })
+      .strict()
+      .parse(req.query);
+    ok(
+      res,
+      await repo.rpc("clinic_queue", {
+        p_actor: res.locals.doctor.user.id,
+        p_clinic: q.clinic_id,
+        p_day: q.day,
+        p_doctor_only: true,
+      }),
+    );
+  });
+  router.patch("/appointments/:id/attendance", async (req, res) => {
+    const q = z
+      .object({
+        clinic_id: uuid,
+        status: z.enum(["in_consultation", "finished"]),
+        expected_updated_at: instant,
+      })
+      .strict()
+      .parse(req.body);
+    ok(
+      res,
+      await repo.rpc("appointment_attendance", {
+        p_actor: res.locals.doctor.user.id,
+        p_clinic: q.clinic_id,
+        p_id: uuid.parse(req.params.id),
+        p_status: q.status,
+        p_expected: q.expected_updated_at,
+        p_doctor_only: true,
+      }),
+    );
+  });
+  router.post("/schedule/block", async (req, res) => {
+    const q = z
+      .object({ clinic_id: uuid, starts_at: instant, ends_at: instant })
+      .strict()
+      .parse(req.body);
+    ok(
+      res,
+      await repo.rpc("doctor_block_period", {
+        p_actor: res.locals.doctor.user.id,
+        p_clinic: q.clinic_id,
+        p_start: q.starts_at,
+        p_end: q.ends_at,
+      }),
+    );
+  });
+  router.post("/schedule/copy", async (req, res) => {
+    const q = z
+      .object({ clinic_id: uuid, source: z.iso.date(), target: z.iso.date() })
+      .strict()
+      .parse(req.body);
+    ok(
+      res,
+      await repo.rpc("doctor_copy_week", {
+        p_actor: res.locals.doctor.user.id,
+        p_clinic: q.clinic_id,
+        p_source: q.source,
+        p_target: q.target,
+      }),
+    );
+  });
   router.post("/schedule-change-requests", async (req, res) => {
     const q = doctorRequestSchema.parse(req.body);
     ok(

@@ -7,6 +7,8 @@ enum FailureKind {
   server,
   notFound,
   bookingConflict,
+  policyCutoff,
+  slotsAvailable,
   invalidResponse,
   cancelled,
   otpExpired,

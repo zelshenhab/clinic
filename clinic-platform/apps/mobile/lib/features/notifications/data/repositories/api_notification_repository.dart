@@ -24,6 +24,11 @@ class ApiNotificationRepository implements NotificationRepository {
           CatalogParser.id(row['id']),
           CatalogParser.text(row['title']),
           CatalogParser.text(row['body']),
+          readAt: row['read_at'] == null
+              ? null
+              : DateTime.parse(row['read_at'] as String),
+          kind: row['kind'] as String? ?? 'general',
+          context: Map<String, dynamic>.from(row['context'] as Map? ?? {}),
         );
       }).toList(),
     );

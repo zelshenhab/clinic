@@ -1,3 +1,4 @@
+import { startPatientJobs } from "./modules/patients/jobs.js";
 import { doctorRoutes } from "./modules/doctor/routes.js";
 import { bookingRoutes } from "./modules/appointments/routes.js";
 import { adminRoutes } from "./modules/admin/routes.js";
@@ -30,8 +31,10 @@ const server = createApp(
   bookingRoutes(db),
   doctorRoutes(db),
 ).listen(config.PORT);
+const stopJobs = startPatientJobs(db);
 for (const signal of ["SIGTERM", "SIGINT"])
   process.on(signal, () => {
+    stopJobs();
     server.close(() => process.exit(0));
     setTimeout(() => process.exit(1), 10000).unref();
   });

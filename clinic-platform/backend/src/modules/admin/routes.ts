@@ -97,6 +97,73 @@ export function adminRoutes(db: SupabaseClient) {
     ),
   );
   const base = "/clinics/:clinicId";
+  router.get(base + "/booking-policy", guard("settings"), async (_req, res) =>
+    ok(
+      res,
+      await repo.rpc("admin_booking_policy", {
+        p_actor: res.locals.access.userId,
+        p_clinic: res.locals.clinic,
+        p_input: null,
+      }),
+    ),
+  );
+  router.patch(
+    base + "/booking-policy",
+    guard("settings"),
+    async (req, res) => {
+      const input = z
+        .object({
+          cancellation_notice_minutes: z.number().int().min(0).max(10080),
+          reschedule_notice_minutes: z.number().int().min(0).max(10080),
+        })
+        .strict()
+        .parse(req.body);
+      ok(
+        res,
+        await repo.rpc("admin_booking_policy", {
+          p_actor: res.locals.access.userId,
+          p_clinic: res.locals.clinic,
+          p_input: input,
+        }),
+      );
+    },
+  );
+  router.get(base + "/queue", guard("appointments"), async (req, res) => {
+    const q = z.object({ day: z.iso.date() }).strict().parse(req.query);
+    ok(
+      res,
+      await repo.rpc("clinic_queue", {
+        p_actor: res.locals.access.userId,
+        p_clinic: res.locals.clinic,
+        p_day: q.day,
+        p_doctor_only: false,
+      }),
+    );
+  });
+  router.patch(
+    base + "/appointments/:id/attendance",
+    guard("status"),
+    async (req, res) => {
+      const q = z
+        .object({
+          status: z.enum(["arrived", "waiting", "in_consultation", "finished"]),
+          expected_updated_at: z.iso.datetime({ offset: true }),
+        })
+        .strict()
+        .parse(req.body);
+      ok(
+        res,
+        await repo.rpc("appointment_attendance", {
+          p_actor: res.locals.access.userId,
+          p_clinic: res.locals.clinic,
+          p_id: uuid.parse(req.params.id),
+          p_status: q.status,
+          p_expected: q.expected_updated_at,
+          p_doctor_only: false,
+        }),
+      );
+    },
+  );
   router.get(base + "/dashboard", guard("overview"), async (req, res) =>
     ok(
       res,

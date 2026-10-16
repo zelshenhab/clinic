@@ -4,6 +4,7 @@ import { Routes, Route } from "react-router-dom";
 import { useClinic } from "../contexts/ClinicContext";
 import { allowed } from "../utils/permissions";
 import { Failure, Skeleton } from "../components/Shared";
+const QueuePage = lazy(() => import("../features/appointments/QueuePage"));
 const OverviewPage = lazy(pageLoaders.overview);
 const AppointmentsPage = lazy(pageLoaders.appointments);
 const CalendarPage = lazy(pageLoaders.calendar);
@@ -33,6 +34,7 @@ function DoctorRoutes() {
   return (
     <Routes>
       <Route index element={<DoctorPages.DoctorOverview />} />
+      <Route path="queue" element={<QueuePage />} />
       <Route path="appointments" element={<AppointmentsPage />} />
       <Route path="calendar" element={<CalendarPage />} />
       <Route path="patients" element={<DoctorPages.DoctorPatients />} />
@@ -66,6 +68,14 @@ export function ManagementRoutes() {
   return (
     <Suspense fallback={<Skeleton />}>
       <Routes>
+        <Route
+          path="queue"
+          element={
+            <Permit operation="appointments">
+              <QueuePage />
+            </Permit>
+          }
+        />
         <Route
           index
           element={

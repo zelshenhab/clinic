@@ -30,6 +30,7 @@ import {
 } from "../../components/Shared";
 import { clinicDate, clinicNow, toInstant } from "../../utils/time";
 import AppointmentDetail from "../appointments/AppointmentDetail";
+import ScheduleTools from "./ScheduleTools";
 import { ScheduleEditor } from "../schedules/SchedulesPage";
 export function DoctorOverview() {
   const { t, text, locale } = useLocale(),
@@ -308,6 +309,7 @@ export function DoctorSchedule() {
           </>
         )}
       </QueryState>
+      <ScheduleTools />
       <DoctorRequests />
     </>
   );

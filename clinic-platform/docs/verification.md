@@ -21,3 +21,9 @@ Not executed: live Supabase migrations/seeds/RLS, SMS delivery, native binary/de
 API HTTP tests require permission to bind an ephemeral local socket. Widget async stream cleanup runs outside the test’s fake clock. Supabase adapter tests use controlled HTTP responses and do not test live SMS.
 
 Not executed: live database migrations/seeds/RLS integration, SMS delivery/verification, native Android/iOS binaries, real-device secure-storage behavior, booking concurrency or realtime clients. No Docker/PostgreSQL service or Supabase credentials were supplied. Booking and realtime client implementation belong to later phases.
+
+### Patient experience extension
+
+See [patient experience verification and activation](patient-experience.md). New browser scenario: `PLAYWRIGHT_MODULE=/path/to/playwright-core node apps/dashboard/tests/patient-experience-browser.mjs` against the isolated test API/Vite servers. It checks policy writes/public policy reads, confirmed appointment arrival/waiting, own-doctor queue, copy-week/day-off mutations and public nearest-time search. It uses test-only authentication and local SQL, and does not certify hosted Supabase sessions or WebSockets.
+
+Final extension checks: 95 backend + 32 dashboard + 59 Flutter tests passed; Flutter analyze is clean; production builds pass. Administrator, doctor and new patient-experience browser scenarios passed against isolated local fixtures.

@@ -14,6 +14,8 @@ export function adminRepository(db: SupabaseClient) {
           "FORBIDDEN",
           "NOT_FOUND",
           "VALIDATION_ERROR",
+          "POLICY_CUTOFF",
+          "SLOT_ALREADY_AVAILABLE",
         ].find((x) => error.message === x);
         const invalid = ["23502", "23503", "23514", "22P02", "22007"].includes(
           code,
@@ -24,7 +26,9 @@ export function adminRepository(db: SupabaseClient) {
               code === "23505" ||
               domain === "SLOT_UNAVAILABLE" ||
               domain === "SCHEDULE_CONFLICT" ||
-              domain === "STALE_APPOINTMENT"
+              domain === "STALE_APPOINTMENT" ||
+              domain === "POLICY_CUTOFF" ||
+              domain === "SLOT_ALREADY_AVAILABLE"
             ? 409
             : domain === "FORBIDDEN"
               ? 403

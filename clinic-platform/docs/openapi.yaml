@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Clinic Platform API
-  version: 0.5.0
+  version: 0.6.0
 servers:
   - url: http://localhost:3000
 security:
@@ -4551,6 +4551,729 @@ paths:
           description: Invalid identifiers/date.
         "404":
           description: Clinic unavailable.
+  /api/v1/clinics/{clinicId}/booking-policy:
+    get:
+      tags:
+        - Patient experience
+      summary: Read patient cancellation and rescheduling notice periods
+      description: ""
+      security: []
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+  /api/v1/clinics/{clinicId}/next-available:
+    get:
+      tags:
+        - Patient experience
+      summary: Find nearest public appointment times by specialty
+      description: Scans up to 14 days from clinic-local today/from, up to 200
+        doctor-service combinations per day. Sorted times remain subject to
+        atomic booking validation; response includes items, specialties,
+        searched_until, combination_limit.
+      security: []
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: specialty_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: service_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: from
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 20
+            default: 10
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+  /api/v1/clinics/{clinicId}/booking/appointments/{id}/reschedule:
+    post:
+      tags:
+        - Patient experience
+      summary: Move own appointment to an available slot
+      description: Same doctor/service, preserves price snapshot. Clinic notice
+        period, attendance, ownership, optimistic version, horizon and overlap
+        rules apply. POLICY_CUTOFF and STALE_APPOINTMENT are HTTP 409.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                starts_at:
+                  type: string
+                  format: date-time
+                expected_updated_at:
+                  type: string
+                  format: date-time
+              required:
+                - starts_at
+                - expected_updated_at
+  /api/v1/clinics/{clinicId}/booking/waitlist:
+    get:
+      tags:
+        - Patient experience
+      summary: Read own last 50 waitlist entries
+      description: ""
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+    post:
+      tags:
+        - Patient experience
+      summary: Join waitlist for a currently full doctor-service day
+      description: Requires a complete patient profile. SLOT_ALREADY_AVAILABLE (409)
+        means refresh slots and book instead. Durable in-app notification only;
+        never reserves a slot.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema: &a12
+            type: string
+            format: uuid
+      responses:
+        "201":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                doctor_id: *a12
+                service_id: *a12
+                day:
+                  type: string
+                  format: date
+              required:
+                - doctor_id
+                - service_id
+                - day
+  /api/v1/clinics/{clinicId}/booking/waitlist/{id}:
+    delete:
+      tags:
+        - Patient experience
+      summary: Leave own waitlist entry
+      description: ""
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+  /api/v1/clinics/{clinicId}/booking/notifications/{id}:
+    patch:
+      tags:
+        - Patient experience
+      summary: Mark own clinic notification as read
+      description: ""
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                read:
+                  const: true
+                  type: boolean
+              required:
+                - read
+  /api/v1/admin/clinics/{clinicId}/booking-policy:
+    get:
+      tags:
+        - Patient experience
+      summary: Read clinic patient-change policy as administrator
+      description: ""
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+    patch:
+      tags:
+        - Patient experience
+      summary: Set clinic notice periods in minutes
+      description: ""
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                cancellation_notice_minutes:
+                  type: integer
+                  minimum: 0
+                  maximum: 10080
+                reschedule_notice_minutes:
+                  type: integer
+                  minimum: 0
+                  maximum: 10080
+              required:
+                - cancellation_notice_minutes
+                - reschedule_notice_minutes
+  /api/v1/admin/clinics/{clinicId}/queue:
+    get:
+      tags:
+        - Patient experience
+      summary: Read clinic arrival queue
+      description: Clinic-local day. Reception/admin see clinic appointments; DOCTOR
+        is restricted to own appointments. Maximum 100, total and truncated
+        returned.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: day
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+  /api/v1/admin/clinics/{clinicId}/appointments/{id}/attendance:
+    patch:
+      tags:
+        - Patient experience
+      summary: Record an authorized attendance transition
+      description: Confirmed appointments only. Reception records
+        scheduled→arrived→waiting; assigned doctor starts/finishes consultations
+        after appointment start. Admin can perform both. All writes are
+        versioned and audited.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                status:
+                  enum:
+                    - arrived
+                    - waiting
+                    - in_consultation
+                    - finished
+                expected_updated_at:
+                  type: string
+                  format: date-time
+              required:
+                - status
+                - expected_updated_at
+  /api/v1/doctor/queue:
+    get:
+      tags:
+        - Patient experience
+      summary: Read only assigned doctor arrival queue
+      description: ""
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: clinic_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: day
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+  /api/v1/doctor/appointments/{id}/attendance:
+    patch:
+      tags:
+        - Patient experience
+      summary: Start or finish an own confirmed consultation
+      description: ""
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                clinic_id:
+                  type: string
+                  format: uuid
+                status:
+                  enum:
+                    - in_consultation
+                    - finished
+                expected_updated_at:
+                  type: string
+                  format: date-time
+              required:
+                - clinic_id
+                - status
+                - expected_updated_at
+  /api/v1/doctor/schedule/block:
+    post:
+      tags:
+        - Patient experience
+      summary: Block a day or vacation period for the signed-in doctor
+      description: Future non-empty interval, maximum 180 days. Existing active
+        appointments are protected and produce SCHEDULE_CONFLICT (409). No
+        caller doctor ID accepted.
+      security:
+        - bearerAuth: []
+      parameters: []
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                clinic_id:
+                  type: string
+                  format: uuid
+                starts_at:
+                  type: string
+                  format: date-time
+                ends_at:
+                  type: string
+                  format: date-time
+              required:
+                - clinic_id
+                - starts_at
+                - ends_at
+  /api/v1/doctor/schedule/copy:
+    post:
+      tags:
+        - Patient experience
+      summary: Replace a future week with copied effective working capacity
+      description: Dates normalize to Monday in clinic timezone. Copies working
+        intervals minus breaks and closed exceptions plus open exceptions.
+        Retains exceptions outside target week, protects active bookings. Future
+        target within 180 days, maximum 400 resulting exceptions.
+      security:
+        - bearerAuth: []
+      parameters: []
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                clinic_id:
+                  type: string
+                  format: uuid
+                source:
+                  type: string
+                  format: date
+                target:
+                  type: string
+                  format: date
+              required:
+                - clinic_id
+                - source
+                - target
 components:
   securitySchemes:
     bearerAuth:
@@ -6214,6 +6937,21 @@ components:
           default: ""
       required:
         - approve
+    BookingPolicy:
+      type: object
+      additionalProperties: false
+      properties:
+        cancellation_notice_minutes:
+          type: integer
+          minimum: 0
+          maximum: 10080
+        reschedule_notice_minutes:
+          type: integer
+          minimum: 0
+          maximum: 10080
+      required:
+        - cancellation_notice_minutes
+        - reschedule_notice_minutes
   responses:
     Failure:
       description: Sanitized error envelope

@@ -1,4 +1,5 @@
 import 'booking_slots.dart';
+import '../../domain/repositories/patient_tools_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/catalog/catalog_query.dart';
@@ -15,9 +16,13 @@ class BookingEntryPage extends StatelessWidget {
     super.key,
     required this.clinicId,
     this.query = const CatalogQuery(),
+    this.tools,
+    this.initialDate,
   });
   final String clinicId;
   final CatalogQuery query;
+  final PatientToolsRepository? tools;
+  final String? initialDate;
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!,
@@ -73,6 +78,8 @@ class BookingEntryPage extends StatelessWidget {
               ),
               data: data,
               query: query,
+              tools: tools,
+              initialDate: initialDate,
             ),
           const SizedBox(height: 24),
           AppButton(

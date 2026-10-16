@@ -108,11 +108,20 @@ class ApiClient {
       return data['data'];
     } on DioException catch (e) {
       if (e.error is AppException) throw e.error! as AppException;
+      final payload = e.response?.data;
+      final detail = payload is Map ? payload['error'] : null;
+      final code = detail is Map
+          ? detail['code']
+          : (payload is Map ? payload['code'] : null);
       throw AppException(switch (e.response?.statusCode) {
         401 => FailureKind.unauthorized,
         403 => FailureKind.forbidden,
         404 => FailureKind.notFound,
-        409 => FailureKind.bookingConflict,
+        409 => switch (code) {
+          'POLICY_CUTOFF' => FailureKind.policyCutoff,
+          'SLOT_ALREADY_AVAILABLE' => FailureKind.slotsAvailable,
+          _ => FailureKind.bookingConflict,
+        },
         400 || 422 => FailureKind.validation,
         429 => FailureKind.rateLimited,
         _ => switch (e.type) {

@@ -1,3 +1,4 @@
+import BookingPolicy from "./BookingPolicy";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { settingsFormSchema } from "../../utils/formSchemas";
 import { useForm } from "react-hook-form";
@@ -24,6 +25,7 @@ export default function SettingsPage() {
       <QueryState query={query}>
         {(data) => <Editor key={data.updated_at} data={data} />}
       </QueryState>
+      <BookingPolicy />
     </>
   );
 }
