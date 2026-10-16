@@ -33,3 +33,11 @@ A controlled Chrome comparison used the previous committed dashboard and the new
 Local verification includes SQL/HTTP authorization and slot privacy, direct doctor saves, protected existing bookings, patient booking removing the slot, duplicate booking rejection, assigned-doctor events, mobile state/API/widget tests in RU/EN, and doctor/admin browser workflows. Flutter analyze is clean. `npm test` passed 81 backend and 27 dashboard tests. `flutter test` passed 50 tests; `flutter analyze` reports no issues. The TypeScript/Vite production build passed. Browser checks cover the existing administrator flows, direct doctor schedule saving, anonymous availability, patient booking/slot removal/conflict rejection, RU/EN, responsive layouts and logout/account switching.
 
 Apply [migration 008](../supabase/migrations/202610160008_doctor_availability.sql) once in Supabase SQL Editor after migrations 001–007; do not rerun the initial setup. Restart the backend, refresh the dashboard and rebuild Flutter with its local configuration. For a project that already has 007, only this incremental SQL file is required. Live hosted OTP and Realtime remain unverified by local fixture tests.
+
+## Full-day hourly editor (2026-10-16)
+
+The weekly editor now exposes 24 hours for each of seven weekdays. Any hour can be toggled independently; adjacent open hours are merged, closing an hour splits the period and existing breaks remain unavailable. Partially open hours are labeled explicitly. Minute-level ranges remain available in the advanced shift fields. End-of-day `24:00` is supported, including valid bookings ending exactly at midnight. Overnight work is configured on both corresponding weekdays. Individual appointments spanning past midnight into the following morning remain outside the current validator; appointments ending at midnight are supported.
+
+Apply incremental [migration 009](../supabase/migrations/202610160009_full_day_availability.sql) after 008. Existing reservations remain protected. Automated checks cover 168 UI controls, alternating hours across the week, breaks, midnight booking and attempted closure of booked night hours.
+
+Full-day update verification: 83 backend and 31 dashboard tests passed, with the TypeScript/Vite build passing. Flutter source was unchanged by this follow-up.

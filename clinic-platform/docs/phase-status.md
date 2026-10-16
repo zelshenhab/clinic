@@ -39,3 +39,5 @@ Verified locally through migrated SQL, HTTP/UI tests, browser doctor/admin workf
 ## Direct availability and booking integration (2026-10-16)
 
 Implemented doctor-owned direct schedule editing, public non-identifying available slots and Flutter date/slot selection with authenticated booking/receipt and automatic invalidation. This supersedes mandatory approval for ordinary doctor availability edits; existing booking conflicts remain protected. Dashboard route/data preparation, scoped freshness policies, stable pagination and concurrent-only Auth lookup sharing improve navigation. See [delivery and performance evidence](availability-and-performance.md). Hosted migration 008 and live OTP/WebSocket acceptance remain required.
+
+Full-day availability update: the doctor weekly editor now covers all 24 hours/day, split periods and end-of-day 24:00. Migration 009 extends the shared validator and existing-booking conflict checks to midnight boundaries. See the availability delivery report.

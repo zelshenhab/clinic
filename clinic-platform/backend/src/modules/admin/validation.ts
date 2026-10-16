@@ -152,7 +152,7 @@ const shift = z
   .object({
     weekday: z.number().int().min(0).max(6),
     starts_at: time,
-    ends_at: time,
+    ends_at: z.union([time, z.literal("24:00")]),
     breaks: z.array(z.object({ start: time, end: time }).strict()).max(8),
   })
   .strict()
@@ -175,7 +175,7 @@ const shift = z
   });
 export const scheduleSchema = z
   .object({
-    weekly: z.array(shift).max(28),
+    weekly: z.array(shift).max(168),
     exceptions: z
       .array(
         z

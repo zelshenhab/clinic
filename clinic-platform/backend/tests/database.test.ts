@@ -1265,3 +1265,76 @@ it("first self-service booking links only the verified patient atomically and ro
       ).rows.length,
     ).toBe(1);
   }));
+it("late-night availability includes bookings ending exactly at midnight and protects them during schedule edits", () =>
+  doctorFixture(async () => {
+    const schedule = await doctorRead("schedule");
+    const weekly = schedule.weekly.map((s: any) => ({
+      weekday: s.weekday,
+      starts_at: s.starts_at.slice(0, 5),
+      ends_at: s.ends_at.slice(0, 5),
+      breaks: s.breaks,
+    }));
+    const day = (
+      await db.query<any>(
+        "select (current_date+10)::text as day,extract(dow from current_date+10)::int weekday",
+      )
+    ).rows[0];
+    weekly.push({
+      weekday: day.weekday,
+      starts_at: "23:00",
+      ends_at: "24:00",
+      breaks: [],
+    });
+    await db.query("select public.doctor_schedule_save($1,$2,$3)", [
+      workspaceDoctorUser,
+      clinic,
+      JSON.stringify({ weekly, exceptions: [] }),
+    ]);
+    const slots = (
+      await db.query<any>(
+        "select public.public_availability($1,$2,$3,$4) slots",
+        [clinic, doctor, service, day.day],
+      )
+    ).rows[0].slots;
+    const midnight = (
+      await db.query<any>(
+        "select ($1::date+1)::timestamp at time zone timezone as instant from public.clinics where id=$2",
+        [day.day, clinic],
+      )
+    ).rows[0].instant;
+    const last = slots.find(
+      (s: any) => Date.parse(s.ends_at) === new Date(midnight).getTime(),
+    );
+    expect(last).toBeDefined();
+    const booked = (
+      await db.query<any>("select public.patient_book($1,$2,$3) a", [
+        ownPatient,
+        clinic,
+        JSON.stringify({
+          doctor_id: doctor,
+          service_id: service,
+          starts_at: last.starts_at,
+        }),
+      ])
+    ).rows[0].a;
+    await expect(
+      db.query("select public.doctor_schedule_save($1,$2,$3)", [
+        workspaceDoctorUser,
+        clinic,
+        JSON.stringify({ weekly, exceptions: [] }),
+      ]),
+    ).resolves.toBeDefined();
+    await expect(
+      db.query("select public.doctor_schedule_save($1,$2,$3)", [
+        workspaceDoctorUser,
+        clinic,
+        JSON.stringify({
+          weekly: weekly.filter((s: any) => s.starts_at !== "23:00"),
+          exceptions: [],
+        }),
+      ]),
+    ).rejects.toThrow("SCHEDULE_CONFLICT");
+    expect((await doctorRead("appointment", { id: booked.id })).id).toBe(
+      booked.id,
+    );
+  }));

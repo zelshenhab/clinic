@@ -297,3 +297,25 @@ it("public slots require no patient identity while direct schedule writes requir
     ).status,
   ).toBe(400);
 });
+it("doctor schedule API accepts a full-day end boundary and late-night working hours", async () => {
+  const { app, rpc } = fixture("DOCTOR");
+  const schedule = {
+    weekly: [
+      { weekday: 1, starts_at: "00:00", ends_at: "24:00", breaks: [] },
+      { weekday: 2, starts_at: "23:00", ends_at: "24:00", breaks: [] },
+    ],
+    exceptions: [],
+  };
+  expect(
+    (
+      await request(app)
+        .put("/api/v1/doctor/schedule")
+        .set("Authorization", "Bearer verified")
+        .send({ clinic_id: clinic, schedule })
+    ).status,
+  ).toBe(200);
+  expect(rpc).toHaveBeenCalledWith(
+    "doctor_schedule_save",
+    expect.objectContaining({ p_input: schedule }),
+  );
+});

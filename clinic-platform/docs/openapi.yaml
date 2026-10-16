@@ -3937,7 +3937,8 @@ paths:
         - Doctor workspace
       summary: Save own weekly shifts, breaks and available/unavailable exceptions immediately
       description: No administrator approval is required. Verified doctor identity and conflict checks preserve
-        ongoing/future bookings.
+        ongoing/future bookings. All 24 hours are configurable; use 24:00 as the exclusive end-of-day
+        boundary. Overnight work uses both corresponding weekdays.
       security:
         - bearerAuth: []
       requestBody:
@@ -5110,7 +5111,7 @@ components:
       type: object
       properties:
         weekly:
-          maxItems: 28
+          maxItems: 168
           type: array
           items:
             type: object
@@ -5124,7 +5125,8 @@ components:
                 pattern: ^(?:[01][0-9]|2[0-3]):[0-5][0-9]$
               ends_at:
                 type: string
-                pattern: ^(?:[01][0-9]|2[0-3]):[0-5][0-9]$
+                pattern: ^(?:(?:[01][0-9]|2[0-3]):[0-5][0-9]|24:00)$
+                description: Exclusive end time. 24:00 means midnight at the end of this weekday.
               breaks:
                 maxItems: 8
                 type: array

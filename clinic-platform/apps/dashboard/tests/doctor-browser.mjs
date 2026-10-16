@@ -145,7 +145,7 @@ try {
     .getByRole("link", { name: "My schedule", exact: true })
     .click();
   let editor = page.locator("form.stack-form").first();
-  await editor.locator('input[type="time"]').nth(1).fill("18:15");
+  await editor.locator('input[name="weekly.0.end"]').fill("18:15");
   const savedPromise = page.waitForResponse(
     (r) =>
       r.url().includes("/doctor/schedule") && r.request().method() === "PUT",

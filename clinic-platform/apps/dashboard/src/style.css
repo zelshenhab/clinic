@@ -1590,3 +1590,34 @@ footer {
     animation: none;
   }
 }
+
+.hourly-editor {
+  min-width: 0;
+}
+.hourly-grid {
+  min-width: 720px;
+}
+.hourly-grid th,
+.hourly-grid td {
+  padding: 5px;
+}
+.hourly-grid button {
+  width: 100%;
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  border: 1px solid #e4ecf4;
+}
+.hour-open {
+  background: #eaf5ff;
+  color: #104a85;
+}
+.hour-closed {
+  background: #f7fafd;
+  color: #718096;
+}
+
+.hour-partial {
+  background: #fff5df;
+  color: #885a05;
+}

@@ -1,5 +1,10 @@
 export const translations = {
   ru: {
+    partlyAvailable: "Частично",
+    hourlyAvailability: "Доступность: все 24 часа",
+    hourlyHelp:
+      "Нажмите любой час, чтобы открыть или закрыть его. Для ночной смены выберите часы до и после полуночи в соответствующие дни. Нажмите «Сохранить», чтобы применить.",
+    unavailable: "Недоступно",
     directScheduleHelp:
       "Укажите рабочие дни, перерывы и исключения. Изменения сохраняются сразу; существующие записи защищены.",
     editAvailability: "Редактировать доступное время",
@@ -324,6 +329,11 @@ export const translations = {
       "Изображение загружено. Сохраните форму, чтобы применить его.",
   },
   en: {
+    partlyAvailable: "Partly available",
+    hourlyAvailability: "Availability: all 24 hours",
+    hourlyHelp:
+      "Click any hour to open or close it. For overnight work, select hours on both sides of midnight on the corresponding days. Save to apply your changes.",
+    unavailable: "Unavailable",
     directScheduleHelp:
       "Set working days, breaks and available/unavailable exceptions. Changes apply immediately; existing bookings are protected.",
     editAvailability: "Edit availability",

@@ -139,7 +139,7 @@ const weeklyShift = z
   .object({
     weekday: z.number().int().min(0).max(6),
     start: clock,
-    end: clock,
+    end: z.union([clock, z.literal("24:00")]),
     breaks: z.array(z.object({ start: clock, end: clock })).max(8),
   })
   .superRefine((shift, ctx) => {
@@ -159,7 +159,7 @@ const weeklyShift = z
   });
 export const scheduleFormSchema = z
   .object({
-    weekly: z.array(weeklyShift).max(28),
+    weekly: z.array(weeklyShift).max(168),
     exceptions: z
       .array(
         z

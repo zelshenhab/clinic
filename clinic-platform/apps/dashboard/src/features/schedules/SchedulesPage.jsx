@@ -1,3 +1,4 @@
+import HourlySchedule from "./HourlySchedule";
 import RequestReview from "../doctor/RequestReview";
 import { useDoctorMutation } from "../../hooks/useDoctor";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -211,6 +212,7 @@ export function ScheduleEditor({
       <p className="fine-print">
         {t("clinicTimezone")}: {clinic.timezone}. {t("bookingDurationHelp")}
       </p>
+      <HourlySchedule form={form} disabled={!editable || mutation.isPending} />
       <fieldset disabled={!editable || mutation.isPending}>
         <legend>{t("weekly")}</legend>
         {weekly.fields.map((s, i) => (
@@ -241,9 +243,10 @@ export function ScheduleEditor({
               <Field
                 label="end"
                 name={`weekly.${i}.end`}
+                placeholder="HH:mm / 24:00"
                 register={form.register}
                 errors={form.formState.errors}
-                type="time"
+                type="text"
                 required
               />
               {editable && (
@@ -266,8 +269,8 @@ export function ScheduleEditor({
             onClick={() =>
               weekly.append({
                 weekday: 1,
-                start: "09:00",
-                end: "17:00",
+                start: "00:00",
+                end: "01:00",
                 breaks: [],
               })
             }
