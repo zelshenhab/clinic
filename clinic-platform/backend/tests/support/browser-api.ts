@@ -1,3 +1,4 @@
+import { bookingRoutes } from "../../src/modules/appointments/routes.js";
 import { doctorRoutes } from "../../src/modules/doctor/routes.js";
 // Isolated browser QA only. Never imported by the production server.
 import { PGlite } from "@electric-sql/pglite";
@@ -146,6 +147,12 @@ for (let offset = 1; offset < 8; offset++) {
     break;
   }
 }
+const patientToken =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9." +
+  Buffer.from(
+    JSON.stringify({ sub: patient, role: "authenticated", exp: 4102444800 }),
+  ).toString("base64url") +
+  ".testsignature";
 const fake = {
   auth: {
     getUser: async (value: string) => ({
@@ -155,14 +162,18 @@ const fake = {
             ? { id: actor, email: "qa@example.invalid" }
             : value === doctorToken
               ? { id: doctorActor, email: "doctor@example.invalid" }
-              : null,
+              : value === patientToken
+                ? { id: patient, email: "patient@example.invalid" }
+                : null,
       },
-      error: [token, doctorToken].includes(value) ? null : { status: 401 },
+      error: [token, doctorToken, patientToken].includes(value)
+        ? null
+        : { status: 401 },
     }),
   },
   rpc: async (name: string, args: Record<string, unknown>) => {
     try {
-      if (!/^(admin|doctor)_[a-z_]+$/.test(name))
+      if (!/^(admin|doctor|patient)_[a-z_]+$|^public_availability$/.test(name))
         throw Error("Unsupported test RPC");
       const keys = Object.keys(args);
       const sql = `select public.${name}(${keys.map((key, i) => `${key}=>$${i + 1}`).join(",")}) as data`;
@@ -232,7 +243,7 @@ const app = createApp(
   undefined,
   undefined,
   adminRoutes(fake),
-  undefined,
+  bookingRoutes(fake),
   doctorRoutes(fake),
 );
 const server = app.listen(3011, "127.0.0.1", () =>

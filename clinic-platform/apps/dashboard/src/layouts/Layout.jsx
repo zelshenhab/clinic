@@ -1,7 +1,10 @@
+import { useNavigationPrefetch } from "../hooks/useNavigationPrefetch";
+import { useQueryClient, useIsFetching } from "@tanstack/react-query";
 import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   HeartPulse,
+  RefreshCw,
   LayoutDashboard,
   CalendarDays,
   Calendar,
@@ -63,6 +66,9 @@ export default function Layout() {
     [notifications, setNotifications] = useState(false),
     [profile, setProfile] = useState(false);
   const realtime = useAppointmentRealtime();
+  const prepare = useNavigationPrefetch(),
+    queryClient = useQueryClient(),
+    refreshing = useIsFetching({ queryKey: ["clinic", clinic?.id] });
   const navigationItems =
     access?.role === "DOCTOR" ? doctorNavigation : navigation;
   const page =
@@ -96,6 +102,9 @@ export default function Layout() {
                 key={label}
                 end
                 to={"/" + path}
+                onMouseEnter={() => prepare(path)}
+                onFocus={() => prepare(path)}
+                onPointerDown={() => prepare(path)}
                 onClick={() => setOpen(false)}
               >
                 <Icon size={19} />
@@ -129,6 +138,20 @@ export default function Layout() {
             <strong>{t(page)}</strong>
           </div>
           <div className="topbar-actions">
+            <button
+              className="icon-button"
+              aria-label={t("refreshData")}
+              title={t("refreshData")}
+              disabled={Boolean(refreshing)}
+              onClick={() =>
+                queryClient.invalidateQueries({
+                  queryKey: ["clinic", clinic.id],
+                  refetchType: "active",
+                })
+              }
+            >
+              <RefreshCw size={18} className={refreshing ? "spin" : ""} />
+            </button>
             <div className="clinic-switch">
               <span className="clinic-dot" />
               <select

@@ -1,3 +1,7 @@
+import '../../features/appointments/domain/repositories/booking_repository.dart';
+import '../../features/appointments/data/repositories/api_booking_repository.dart';
+import '../../features/appointments/data/repositories/supabase_availability_updates.dart';
+import '../../features/appointments/presentation/bloc/booking_flow_cubit.dart';
 import '../../features/home/data/repositories/api_home_repository.dart';
 import '../../features/home/domain/usecases/load_home.dart';
 import '../../features/home/presentation/bloc/home_cubit.dart';
@@ -73,6 +77,19 @@ Future<GetIt> configureDependencies(AppConfig config) async {
   );
   di.registerSingleton<ApiClient>(
     ApiClient(config.apiUrl, auth: di<AuthRepository>()),
+  );
+  di.registerSingleton<BookingRepository>(
+    ApiBookingRepository(di<ApiClient>()),
+  );
+  di.registerSingleton<AvailabilityUpdates>(
+    SupabaseAvailabilityUpdates(client),
+  );
+  di.registerFactory<BookingFlowCubit>(
+    () => BookingFlowCubit(
+      di<ClinicScope>(),
+      di<BookingRepository>(),
+      di<AvailabilityUpdates>(),
+    ),
   );
   di.registerSingleton<ClinicRepository>(
     ApiClinicRepository(ClinicRemoteSource(di<ApiClient>())),

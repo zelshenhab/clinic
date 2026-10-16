@@ -1,5 +1,9 @@
 export const translations = {
   ru: {
+    directScheduleHelp:
+      "Укажите рабочие дни, перерывы и исключения. Изменения сохраняются сразу; существующие записи защищены.",
+    editAvailability: "Редактировать доступное время",
+    refreshData: "Обновить данные",
     loggingOut: "Выход…",
     customRange: "Выбрать даты",
     doctorSettings: "Настройки",
@@ -320,6 +324,10 @@ export const translations = {
       "Изображение загружено. Сохраните форму, чтобы применить его.",
   },
   en: {
+    directScheduleHelp:
+      "Set working days, breaks and available/unavailable exceptions. Changes apply immediately; existing bookings are protected.",
+    editAvailability: "Edit availability",
+    refreshData: "Refresh data",
     loggingOut: "Signing out…",
     customRange: "Custom date range",
     doctorSettings: "Settings",

@@ -28,3 +28,5 @@ See [architecture](docs/architecture.md), [security](docs/security.md), and [API
 [Phase 5 delivery and local verification](docs/phase-5.md). Hosting and server setup are deferred in the current scope.
 
 [Phase 5 doctor workspace](docs/phase-5-doctor.md): private doctor appointments, patients, calendar, requests and administrator approval. Apply incremental migration 007 after the existing schema before using these routes.
+
+[Direct doctor availability, mobile booking and performance update](docs/availability-and-performance.md). Apply migration 008 after the earlier migrations.

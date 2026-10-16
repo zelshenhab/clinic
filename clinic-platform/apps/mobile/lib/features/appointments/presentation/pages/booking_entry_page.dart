@@ -1,3 +1,4 @@
+import 'booking_slots.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/catalog/catalog_query.dart';
@@ -64,6 +65,15 @@ class BookingEntryPage extends StatelessWidget {
               ],
             ),
           ),
+          const SizedBox(height: 24),
+          if (data.doctor != null && data.service != null)
+            BookingSlots(
+              key: ValueKey(
+                '${data.clinic.id}:${data.doctor!.id}:${data.service!.id}',
+              ),
+              data: data,
+              query: query,
+            ),
           const SizedBox(height: 24),
           AppButton(
             label: t.selectDoctor,

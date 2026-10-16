@@ -1,3 +1,6 @@
+import 'package:clinic_mobile/features/appointments/presentation/bloc/booking_flow_cubit.dart';
+import 'package:clinic_mobile/features/appointments/data/repositories/api_booking_repository.dart';
+import 'package:clinic_mobile/features/appointments/data/repositories/supabase_availability_updates.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -102,6 +105,13 @@ void main() {
         () => BookingEntryCubit(
           scope,
           PrepareBooking(ApiBookingContextRepository(api)),
+        ),
+      );
+      di.registerFactory<BookingFlowCubit>(
+        () => BookingFlowCubit(
+          scope,
+          ApiBookingRepository(api),
+          SupabaseAvailabilityUpdates(null),
         ),
       );
       await tester.pumpWidget(ClinicApp(dependencies: di));

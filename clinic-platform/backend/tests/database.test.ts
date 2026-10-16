@@ -595,7 +595,8 @@ async function doctorFixture(run: (f: any) => Promise<void>) {
     const insert = async (d: string, s: string, p: string, past: boolean) =>
       (
         await db.query<any>(
-          `insert into public.appointments(clinic_id,doctor_id,patient_id,service_id,starts_at,ends_at,status,price_rub) select $1,$2,$3,id,now()+case when $5 then interval '-2 days' else interval '20 days' end,now()+case when $5 then interval '-2 days' else interval '20 days' end+interval '30 minutes','confirmed',price_rub from public.services where id=$4 returning *`,
+          `with chosen as(select case when $5 then now()-interval '2 days' else ((select day::date+time '09:00' from generate_series(current_date+20,current_date+27,interval '1 day') day where extract(dow from day) between 1 and 5 order by day limit 1) at time zone (select timezone from public.clinics where id=$1)) end starts_at)
+          insert into public.appointments(clinic_id,doctor_id,patient_id,service_id,starts_at,ends_at,status,price_rub) select $1,$2,$3,s.id,c.starts_at,c.starts_at+interval '30 minutes','confirmed',s.price_rub from public.services s cross join chosen c where s.id=$4 returning *`,
           [clinic, d, p, s, past],
         )
       ).rows[0];
@@ -1075,3 +1076,192 @@ it("browser database roles cannot invoke doctor RPCs or read change-request tabl
     await db.exec("reset role");
   }
 });
+it("doctor can publish own availability directly and public slots disappear atomically when booked", () =>
+  doctorFixture(async () => {
+    const before = await doctorRead("schedule"),
+      input = {
+        weekly: before.weekly.map((s: any) => ({
+          weekday: s.weekday,
+          starts_at: s.starts_at.slice(0, 5),
+          ends_at: s.ends_at.slice(0, 5),
+          breaks: s.breaks,
+        })),
+        exceptions: before.exceptions.map((s: any) => ({
+          starts_at: s.starts_at,
+          ends_at: s.ends_at,
+          available: s.available,
+        })),
+      };
+    await db.query("select public.doctor_schedule_save($1,$2,$3)", [
+      workspaceDoctorUser,
+      clinic,
+      JSON.stringify(input),
+    ]);
+    let slots: any[] = [],
+      day = "";
+    for (let offset = 1; offset < 8; offset++) {
+      day = (
+        await db.query<any>("select (current_date+$1::integer)::text as day", [
+          offset,
+        ])
+      ).rows[0].day;
+      slots = (
+        await db.query<any>(
+          "select public.public_availability($1,$2,$3,$4) slots",
+          [clinic, doctor, service, day],
+        )
+      ).rows[0].slots;
+      if (slots.length) break;
+    }
+    expect(slots.length).toBeGreaterThan(0);
+    const target = slots[0].starts_at;
+    await db.exec("delete from realtime.messages");
+    const booked = (
+      await db.query<any>("select public.patient_book($1,$2,$3) a", [
+        ownPatient,
+        clinic,
+        JSON.stringify({
+          doctor_id: doctor,
+          service_id: service,
+          starts_at: target,
+        }),
+      ])
+    ).rows[0].a;
+    const remaining = (
+      await db.query<any>(
+        "select public.public_availability($1,$2,$3,$4) slots",
+        [clinic, doctor, service, day],
+      )
+    ).rows[0].slots;
+    expect(
+      remaining.some(
+        (s: any) => Date.parse(s.starts_at) === Date.parse(target),
+      ),
+    ).toBe(false);
+    await expect(
+      db.query("select public.patient_book($1,$2,$3)", [
+        ownPatient,
+        clinic,
+        JSON.stringify({
+          doctor_id: doctor,
+          service_id: service,
+          starts_at: target,
+        }),
+      ]),
+    ).rejects.toThrow("SLOT_UNAVAILABLE");
+    expect(
+      (await doctorRead("appointments")).items.some(
+        (a: any) => a.id === booked.id,
+      ),
+    ).toBe(true);
+    const signals = (
+      await db.query<any>(
+        "select topic,payload from realtime.messages where topic like 'availability:%'",
+      )
+    ).rows;
+    expect(signals.length).toBeGreaterThan(0);
+    for (const signal of signals) {
+      expect(Object.keys(signal.payload).sort()).toEqual([
+        "clinic_id",
+        "doctor_id",
+        "event_id",
+      ]);
+      expect(signal.topic).toBe(`availability:${clinic}:${doctor}`);
+    }
+  }));
+it("direct doctor schedule changes preserve booked times and block foreign clinic edits", () =>
+  doctorFixture(async ({ own }) => {
+    const before = await doctorRead("schedule");
+    await expect(
+      db.query("select public.doctor_schedule_save($1,$2,$3)", [
+        workspaceDoctorUser,
+        clinic,
+        JSON.stringify({ weekly: [], exceptions: [] }),
+      ]),
+    ).rejects.toThrow("SCHEDULE_CONFLICT");
+    expect(await doctorRead("schedule")).toEqual(before);
+    const otherClinic = (
+      await db.query<any>(
+        "select id from public.clinics where id<>$1 limit 1",
+        [clinic],
+      )
+    ).rows[0].id;
+    await expect(
+      db.query("select public.doctor_schedule_save($1,$2,$3)", [
+        workspaceDoctorUser,
+        otherClinic,
+        JSON.stringify({ weekly: [], exceptions: [] }),
+      ]),
+    ).rejects.toThrow("FORBIDDEN");
+    expect(
+      Date.parse((await doctorRead("appointment", { id: own.id })).starts_at),
+    ).toBe(new Date(own.starts_at).getTime());
+  }));
+it("first self-service booking links only the verified patient atomically and rolls back a failed join", () =>
+  doctorFixture(async () => {
+    const newcomer = "52000000-0000-4000-8000-000000000001";
+    await db.query("insert into auth.users(id) values($1)", [newcomer]);
+    await db.query(
+      "insert into public.patient_profiles(id,full_name) values($1,'New patient')",
+      [newcomer],
+    );
+    await expect(
+      db.query("select public.patient_book($1,$2,$3)", [
+        newcomer,
+        clinic,
+        JSON.stringify({
+          doctor_id: doctor,
+          service_id: service,
+          starts_at: new Date(Date.now() - 86400000).toISOString(),
+        }),
+      ]),
+    ).rejects.toThrow("SLOT_UNAVAILABLE");
+    expect(
+      (
+        await db.query(
+          "select 1 from public.clinic_memberships where user_id=$1",
+          [newcomer],
+        )
+      ).rows,
+    ).toEqual([]);
+    let starts: string | undefined;
+    for (let offset = 1; offset < 8; offset++) {
+      const day = (
+        await db.query<any>("select (current_date+$1::integer)::text as day", [
+          offset,
+        ])
+      ).rows[0].day;
+      const slots = (
+        await db.query<any>(
+          "select public.public_availability($1,$2,$3,$4) slots",
+          [clinic, doctor, service, day],
+        )
+      ).rows[0].slots;
+      if (slots.length) {
+        starts = slots[0].starts_at;
+        break;
+      }
+    }
+    expect(starts).toBeDefined();
+    const booked = (
+      await db.query<any>("select public.patient_book($1,$2,$3) a", [
+        newcomer,
+        clinic,
+        JSON.stringify({
+          doctor_id: doctor,
+          service_id: service,
+          starts_at: starts,
+          patient_id: foreignPatient,
+        }),
+      ])
+    ).rows[0].a;
+    expect(booked.patient_id).toBe(newcomer);
+    expect(
+      (
+        await db.query(
+          "select 1 from public.clinic_memberships where user_id=$1 and clinic_id=$2",
+          [newcomer, clinic],
+        )
+      ).rows.length,
+    ).toBe(1);
+  }));

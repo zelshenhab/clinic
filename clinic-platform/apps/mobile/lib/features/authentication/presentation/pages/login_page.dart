@@ -48,8 +48,13 @@ class _LoginPageState extends State<LoginPage> {
           if (state.status == AuthStatus.codeSent) {
             final from = GoRouterState.of(context).uri.queryParameters['from'];
             context.go(
-              const ['appointments', 'notifications'].contains(from)
-                  ? '/otp?from=$from'
+              const ['appointments', 'notifications', 'booking'].contains(from)
+                  ? Uri(
+                      path: '/otp',
+                      queryParameters: GoRouterState.of(
+                        context,
+                      ).uri.queryParameters,
+                    ).toString()
                   : '/otp',
             );
           }

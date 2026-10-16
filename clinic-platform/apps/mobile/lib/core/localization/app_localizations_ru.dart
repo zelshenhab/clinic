@@ -429,7 +429,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get bookingEntryBody =>
-      'Выберите врача и услугу. Онлайн-запись с выбором даты и времени появится на этапе 4. Сейчас вы можете связаться с клиникой.';
+      'Выберите врача, услугу, дату и доступное время. Запись появится после подтверждения сервером.';
 
   @override
   String get selectDoctor => 'Выбрать врача';
@@ -500,4 +500,29 @@ class AppLocalizationsRu extends AppLocalizations {
   String specialtyDoctorCount(int count) {
     return 'Врачей: $count';
   }
+
+  @override
+  String get availableTimes => 'Доступное время';
+
+  @override
+  String get clinicTimezone => 'Часовой пояс клиники';
+
+  @override
+  String get noAvailableTimes =>
+      'На этот день свободного времени нет. Выберите другую дату.';
+
+  @override
+  String get confirmBooking => 'Подтвердить запись';
+
+  @override
+  String get signInToBook => 'Войти для записи';
+
+  @override
+  String get refreshAvailability => 'Обновить доступное время';
+
+  @override
+  String get bookingSuccess => 'Запись успешно создана';
+
+  @override
+  String get bookingReference => 'Номер записи';
 }

@@ -1,22 +1,17 @@
+import { pageLoaders } from "./loaders";
 import { lazy, Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
 import { useClinic } from "../contexts/ClinicContext";
 import { allowed } from "../utils/permissions";
 import { Failure, Skeleton } from "../components/Shared";
-const OverviewPage = lazy(() => import("../features/overview/OverviewPage"));
-const AppointmentsPage = lazy(
-  () => import("../features/appointments/AppointmentsPage"),
-);
-const CalendarPage = lazy(
-  () => import("../features/appointments/CalendarPage"),
-);
-const CatalogPage = lazy(() => import("../features/catalog/CatalogPage"));
-const PatientsPage = lazy(
-  () => import("../features/appointments/PatientsPage"),
-);
-const SchedulesPage = lazy(() => import("../features/schedules/SchedulesPage"));
-const SettingsPage = lazy(() => import("../features/settings/SettingsPage"));
-const StaffPage = lazy(() => import("../features/staff/StaffPage"));
+const OverviewPage = lazy(pageLoaders.overview);
+const AppointmentsPage = lazy(pageLoaders.appointments);
+const CalendarPage = lazy(pageLoaders.calendar);
+const CatalogPage = lazy(pageLoaders.catalog);
+const PatientsPage = lazy(pageLoaders.patients);
+const SchedulesPage = lazy(pageLoaders.schedules);
+const SettingsPage = lazy(pageLoaders.settings);
+const StaffPage = lazy(pageLoaders.staff);
 const DoctorPages = Object.fromEntries(
   [
     "DoctorOverview",
@@ -28,7 +23,7 @@ const DoctorPages = Object.fromEntries(
   ].map((name) => [
     name,
     lazy(() =>
-      import("../features/doctor/DoctorPages").then((m) => ({
+      pageLoaders.doctor().then((m) => ({
         default: m[name],
       })),
     ),

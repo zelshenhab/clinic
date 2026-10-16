@@ -25,7 +25,7 @@ class ApiBookingContextRepository implements BookingContextRepository {
     return CatalogParser.safe(() {
       final row = CatalogParser.object(data);
       final clinic = ClinicModel.parse(row['clinic']);
-      if (clinic.id != clinicId || row['online_booking_enabled'] != false) {
+      if (clinic.id != clinicId || row['online_booking_enabled'] is! bool) {
         throw const FormatException();
       }
       return BookingContext(

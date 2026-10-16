@@ -134,7 +134,7 @@
   "contactClinic": "Contact the clinic",
   "contactFailed": "The calling app could not be opened. You can copy the number from contact details.",
   "bookingEntryTitle": "Prepare your appointment",
-  "bookingEntryBody": "Choose a doctor and service. Online date and time selection is coming in Phase 4. You can contact the clinic now.",
+  "bookingEntryBody": "Choose a doctor, service, date and available time. Your appointment is created only after the server confirms it.",
   "selectDoctor": "Choose a doctor",
   "selectService": "Choose a service",
   "selectionSummary": "Your selection",
@@ -189,5 +189,13 @@
         "type": "int"
       }
     }
-  }
+  },
+  "availableTimes": "Available times",
+  "clinicTimezone": "Clinic timezone",
+  "noAvailableTimes": "No available times on this day. Choose another date.",
+  "confirmBooking": "Confirm booking",
+  "signInToBook": "Sign in to book",
+  "refreshAvailability": "Refresh available times",
+  "bookingSuccess": "Appointment booked successfully",
+  "bookingReference": "Booking reference"
 }

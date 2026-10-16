@@ -72,3 +72,7 @@
 - `backend/src/modules/doctor/routes.ts`
 - `docs/phase-5-doctor.md`
 - `supabase/migrations/202610130007_doctor_workspace.sql`
+
+## Availability and performance update
+
+See [delivery](availability-and-performance.md), `apps/dashboard/src/services/queries.js`, `apps/dashboard/src/hooks/useNavigationPrefetch.js`, `backend/src/common/async/in-flight.ts`, `supabase/migrations/202610160008_doctor_availability.sql` and the mobile appointments domain/data/presentation booking flow.

@@ -6,7 +6,7 @@ import { useAdminQuery, useAdminMutation } from "../../hooks/useAdmin";
 import { useClinic } from "../../contexts/ClinicContext";
 import { useLocale } from "../../contexts/LocaleContext";
 import { useDebounced } from "../../hooks/useDebounced";
-import { clinicNow, clinicDate } from "../../utils/time";
+import { clinicNow, clinicDate, dateInput } from "../../utils/time";
 import { QueryState, Failure, Submit, Empty } from "../../components/Shared";
 export default function BookingForm({ existing, onDone }) {
   const { clinic } = useClinic(),
@@ -25,7 +25,9 @@ export default function BookingForm({ existing, onDone }) {
       patient_id: existing?.patient_id || "",
       doctor_id: existing?.doctor_id || "",
       service_id: existing?.service_id || "",
-      date: clinicNow(clinic.timezone).plus({ days: 1 }).toISODate(),
+      date: existing?.starts_at
+        ? dateInput(existing.starts_at, clinic.timezone).slice(0, 10)
+        : clinicNow(clinic.timezone).plus({ days: 1 }).toISODate(),
       starts_at: "",
     },
   });

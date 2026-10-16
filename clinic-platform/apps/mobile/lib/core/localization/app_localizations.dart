@@ -905,7 +905,7 @@ abstract class AppLocalizations {
   /// No description provided for @bookingEntryBody.
   ///
   /// In en, this message translates to:
-  /// **'Choose a doctor and service. Online date and time selection is coming in Phase 4. You can contact the clinic now.'**
+  /// **'Choose a doctor, service, date and available time. Your appointment is created only after the server confirms it.'**
   String get bookingEntryBody;
 
   /// No description provided for @selectDoctor.
@@ -1027,6 +1027,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Doctors: {count}'**
   String specialtyDoctorCount(int count);
+
+  /// No description provided for @availableTimes.
+  ///
+  /// In en, this message translates to:
+  /// **'Available times'**
+  String get availableTimes;
+
+  /// No description provided for @clinicTimezone.
+  ///
+  /// In en, this message translates to:
+  /// **'Clinic timezone'**
+  String get clinicTimezone;
+
+  /// No description provided for @noAvailableTimes.
+  ///
+  /// In en, this message translates to:
+  /// **'No available times on this day. Choose another date.'**
+  String get noAvailableTimes;
+
+  /// No description provided for @confirmBooking.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm booking'**
+  String get confirmBooking;
+
+  /// No description provided for @signInToBook.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to book'**
+  String get signInToBook;
+
+  /// No description provided for @refreshAvailability.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh available times'**
+  String get refreshAvailability;
+
+  /// No description provided for @bookingSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Appointment booked successfully'**
+  String get bookingSuccess;
+
+  /// No description provided for @bookingReference.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking reference'**
+  String get bookingReference;
 }
 
 class _AppLocalizationsDelegate

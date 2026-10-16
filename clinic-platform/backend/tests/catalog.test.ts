@@ -306,7 +306,7 @@ it("validates booking preparation relations and never confirms an appointment", 
     .get(`/api/v1/clinics/${a}/booking-context`)
     .query({ doctorId: d, serviceId: svc, specialtyId: sp });
   expect(good.status).toBe(200);
-  expect(good.body.data.online_booking_enabled).toBe(false);
+  expect(good.body.data.online_booking_enabled).toBe(true);
   const wrong = await request(app)
     .get(`/api/v1/clinics/${a}/booking-context`)
     .query({ doctorId: doctors[1].id, serviceId: svc });

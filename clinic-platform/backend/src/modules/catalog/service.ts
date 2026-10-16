@@ -120,7 +120,7 @@ export class CatalogService {
       doctor,
       service,
       specialty,
-      online_booking_enabled: false,
+      online_booking_enabled: true,
     };
   }
   async home(clinic: string, q: Query) {

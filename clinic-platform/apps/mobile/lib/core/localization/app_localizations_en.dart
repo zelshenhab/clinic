@@ -430,7 +430,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get bookingEntryBody =>
-      'Choose a doctor and service. Online date and time selection is coming in Phase 4. You can contact the clinic now.';
+      'Choose a doctor, service, date and available time. Your appointment is created only after the server confirms it.';
 
   @override
   String get selectDoctor => 'Choose a doctor';
@@ -501,4 +501,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String specialtyDoctorCount(int count) {
     return 'Doctors: $count';
   }
+
+  @override
+  String get availableTimes => 'Available times';
+
+  @override
+  String get clinicTimezone => 'Clinic timezone';
+
+  @override
+  String get noAvailableTimes =>
+      'No available times on this day. Choose another date.';
+
+  @override
+  String get confirmBooking => 'Confirm booking';
+
+  @override
+  String get signInToBook => 'Sign in to book';
+
+  @override
+  String get refreshAvailability => 'Refresh available times';
+
+  @override
+  String get bookingSuccess => 'Appointment booked successfully';
+
+  @override
+  String get bookingReference => 'Booking reference';
 }

@@ -1563,3 +1563,30 @@ footer {
   display: block;
   color: #718096;
 }
+
+.query-updating {
+  position: relative;
+  pointer-events: none;
+  opacity: 0.7;
+}
+.query-updating::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #eaf5ff, #1677d2, #eaf5ff);
+  background-size: 200% 100%;
+  animation: query-progress 1s linear infinite;
+}
+@keyframes query-progress {
+  to {
+    background-position: -200% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .query-updating::before {
+    animation: none;
+  }
+}

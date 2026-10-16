@@ -261,3 +261,39 @@ it("receptionist cannot access doctor routes or approve schedule requests", asyn
   ).toBe(403);
   expect(rpc).not.toHaveBeenCalled();
 });
+it("public slots require no patient identity while direct schedule writes require a verified doctor", async () => {
+  const { app, rpc } = fixture("DOCTOR");
+  expect(
+    (
+      await request(app)
+        .get(`/api/v1/clinics/${clinic}/availability`)
+        .query({ doctor_id: doctor, service_id: service, date: "2026-12-01" })
+    ).status,
+  ).toBe(200);
+  expect(rpc).toHaveBeenCalledWith(
+    "public_availability",
+    expect.objectContaining({ p_clinic: clinic, p_doctor: doctor }),
+  );
+  const saved = await request(app)
+    .put("/api/v1/doctor/schedule")
+    .set("Authorization", "Bearer verified")
+    .send({ clinic_id: clinic, schedule: { weekly: [], exceptions: [] } });
+  expect(saved.status).toBe(200);
+  expect(rpc).toHaveBeenCalledWith("doctor_schedule_save", {
+    p_actor: actor,
+    p_clinic: clinic,
+    p_input: { weekly: [], exceptions: [] },
+  });
+  expect(
+    (
+      await request(app)
+        .put("/api/v1/doctor/schedule")
+        .set("Authorization", "Bearer verified")
+        .send({
+          clinic_id: clinic,
+          doctor_id: other,
+          schedule: { weekly: [], exceptions: [] },
+        })
+    ).status,
+  ).toBe(400);
+});

@@ -119,11 +119,18 @@ function Breaks({ index, form }) {
     </fieldset>
   );
 }
-export function ScheduleEditor({ doctor, data, requestMode = false }) {
+export function ScheduleEditor({
+  doctor,
+  data,
+  requestMode = false,
+  doctorDirect = false,
+}) {
   const { t, locale } = useLocale(),
     { clinic, access } = useClinic(),
     editable =
-      requestMode || ["SUPER_ADMIN", "CLINIC_ADMIN"].includes(access.role),
+      requestMode ||
+      doctorDirect ||
+      ["SUPER_ADMIN", "CLINIC_ADMIN"].includes(access.role),
     [reason, setReason] = useState(""),
     [conflict, setConflict] = useState(null);
   const form = useForm({
@@ -146,7 +153,12 @@ export function ScheduleEditor({ doctor, data, requestMode = false }) {
     exceptions = useFieldArray({ control: form.control, name: "exceptions" }),
     adminMutation = useAdminMutation("doctors/" + doctor + "/schedules", "put"),
     requestMutation = useDoctorMutation("schedule-change-requests"),
-    mutation = requestMode ? requestMutation : adminMutation;
+    directMutation = useDoctorMutation("schedule", "put"),
+    mutation = doctorDirect
+      ? directMutation
+      : requestMode
+        ? requestMutation
+        : adminMutation;
   const weekdays = Array.from({ length: 7 }, (_, i) => [
     i,
     new Intl.DateTimeFormat(locale, {
@@ -178,7 +190,7 @@ export function ScheduleEditor({ doctor, data, requestMode = false }) {
             return;
           }
           mutation.mutate({ kind: "schedule", payload, reason });
-        } else mutation.mutate(payload);
+        } else mutation.mutate(doctorDirect ? { schedule: payload } : payload);
       })}
     >
       {requestMode && (

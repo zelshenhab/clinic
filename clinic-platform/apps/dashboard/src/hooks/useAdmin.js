@@ -1,3 +1,4 @@
+import { adminQueryOptions } from "../services/queries";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, adminPath } from "../services/api";
 import { useClinic } from "../contexts/ClinicContext";
@@ -6,33 +7,8 @@ import { useToast } from "../contexts/ToastContext";
 export function useAdminQuery(path, params = {}, enabled = true) {
   const { clinic, access } = useClinic();
   return useQuery({
-    queryKey: [
-      "clinic",
-      clinic?.id,
-      path,
-      params,
-      access?.role,
-      access?.doctor_id,
-    ],
-    queryFn: ({ signal }) => {
-      if (access?.role === "DOCTOR") {
-        const mapped =
-          path === "filter-options"
-            ? "options"
-            : /^doctors\/[^/]+\/schedules$/.test(path)
-              ? "schedule"
-              : path;
-        const { doctor_id, specialty_id, ...safe } = params;
-        return api.get("/doctor/" + mapped, {
-          params: { ...safe, clinic_id: clinic.id },
-          signal,
-        });
-      }
-      return api.get(adminPath(clinic.id, path), { params, signal });
-    },
+    ...adminQueryOptions(clinic, access, path, params),
     enabled: Boolean(clinic) && enabled,
-    retry: (count, error) =>
-      ![401, 403, 404, 400].includes(error.status) && count < 1,
   });
 }
 export function useAdminMutation(path, method = "post", successKey = "saved") {
@@ -51,7 +27,8 @@ export function useAdminMutation(path, method = "post", successKey = "saved") {
     retry: false,
     onSuccess: () => {
       client.invalidateQueries({ queryKey: ["clinic", clinic.id] });
-      client.invalidateQueries({ queryKey: ["authorized-clinics"] });
+      if (["staff", "settings"].includes(path.split("/")[0]))
+        client.invalidateQueries({ queryKey: ["authorized-clinics"] });
       toast(t(successKey));
     },
     onError: (error) => toast(t(error.code) || t("unexpected"), "error"),

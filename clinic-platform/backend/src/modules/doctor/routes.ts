@@ -78,13 +78,11 @@ export function doctorRoutes(db: SupabaseClient) {
   const router = Router(),
     repo = adminRepository(db);
   const ok = (res: any, data: unknown, status = 200) =>
-    res
-      .status(status)
-      .json({
-        success: true,
-        data,
-        message: "Operation completed successfully",
-      });
+    res.status(status).json({
+      success: true,
+      data,
+      message: "Operation completed successfully",
+    });
   router.use(async (req, res, next) => {
     const user = await authenticate(db, req.headers.authorization),
       rows = await memberships(db, user.id);
@@ -164,6 +162,20 @@ export function doctorRoutes(db: SupabaseClient) {
       }),
     ),
   );
+  router.put("/schedule", async (req, res) => {
+    const input = z
+      .object({ clinic_id: uuid, schedule: scheduleSchema })
+      .strict()
+      .parse(req.body);
+    ok(
+      res,
+      await repo.rpc("doctor_schedule_save", {
+        p_actor: res.locals.doctor.user.id,
+        p_clinic: input.clinic_id,
+        p_input: input.schedule,
+      }),
+    );
+  });
   router.post("/schedule-change-requests", async (req, res) => {
     const q = doctorRequestSchema.parse(req.body);
     ok(

@@ -802,9 +802,8 @@ paths:
   /api/v1/clinics/{clinicId}/booking-context:
     get:
       summary: Validate Phase 4 booking selections
-      description: Read-only preparation. Checks clinic existence, assignment/service/specialty membership and
-        doctor/service compatibility. Does not create appointments or calculate availability.
-        online_booking_enabled is always false in Phase 3.
+      description: Validates clinic/doctor/service relationships. It never creates an appointment. Booking support
+        is enabled; actual available slots are read separately.
       responses:
         "200":
           description: Successful operation
@@ -3933,6 +3932,41 @@ paths:
         "403": *a1
         "404": *a1
         "409": *a1
+    put:
+      tags:
+        - Doctor workspace
+      summary: Save own weekly shifts, breaks and available/unavailable exceptions immediately
+      description: No administrator approval is required. Verified doctor identity and conflict checks preserve
+        ongoing/future bookings.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+                - clinic_id
+                - schedule
+              properties:
+                clinic_id: &a8
+                  type: string
+                  format: uuid
+                schedule:
+                  $ref: "#/components/schemas/AdminSchedule"
+      responses:
+        "200":
+          description: Own schedule saved and audited.
+        "400":
+          description: Invalid schedule.
+        "401":
+          description: Unauthenticated.
+        "403":
+          description: Not an active assigned doctor.
+        "409":
+          description: Existing bookings conflict.
   /api/v1/doctor/options:
     get:
       tags:
@@ -4465,6 +4499,57 @@ paths:
         "403": *a1
         "404": *a1
         "409": *a1
+  /api/v1/clinics/{clinicId}/availability:
+    get:
+      tags:
+        - Appointments
+      summary: Public available times without patient data
+      security: []
+      parameters:
+        - in: path
+          name: clinicId
+          required: true
+          schema: *a8
+        - in: query
+          name: doctor_id
+          required: true
+          schema: *a8
+        - in: query
+          name: service_id
+          required: true
+          schema: *a8
+        - in: query
+          name: date
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Future intervals respecting timezone, shifts, breaks, exceptions, bookings and the global horizon.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    const: true
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        starts_at: &a9
+                          type: string
+                          format: date-time
+                        ends_at: *a9
+                      required:
+                        - starts_at
+                        - ends_at
+        "400":
+          description: Invalid identifiers/date.
+        "404":
+          description: Clinic unavailable.
 components:
   securitySchemes:
     bearerAuth:
@@ -4942,7 +5027,8 @@ components:
             - $ref: "#/components/schemas/Specialty"
             - type: "null"
         online_booking_enabled:
-          const: false
+          type: boolean
+          const: true
     Notification:
       type: object
       required:
@@ -6041,7 +6127,7 @@ components:
             kind:
               type: string
               const: schedule
-            reason: &a8
+            reason: &a10
               type: string
               minLength: 5
               maxLength: 2000
@@ -6059,8 +6145,8 @@ components:
             kind:
               type: string
               const: day_off
-            reason: *a8
-            payload: &a9
+            reason: *a10
+            payload: &a11
               type: object
               additionalProperties: false
               properties:
@@ -6081,8 +6167,8 @@ components:
             kind:
               type: string
               const: vacation
-            reason: *a8
-            payload: *a9
+            reason: *a10
+            payload: *a11
           required:
             - clinic_id
             - kind
@@ -6095,7 +6181,7 @@ components:
             kind:
               type: string
               const: reschedule
-            reason: *a8
+            reason: *a10
             payload:
               type: object
               additionalProperties: false

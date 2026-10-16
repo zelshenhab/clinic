@@ -1,9 +1,6 @@
 import WorkingHours from "./WorkingHours";
 import { useState } from "react";
 import { DateTime } from "luxon";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import {
   BarChart,
   Bar,
@@ -296,92 +293,23 @@ export function DoctorSchedule() {
     q = useDoctorQuery("schedule");
   return (
     <>
-      <PageHeader title={t("mySchedule")} subtitle={t("approvalRequired")} />
+      <PageHeader title={t("mySchedule")} subtitle={t("directScheduleHelp")} />
       <QueryState query={q}>
         {(d) => (
           <>
             <WorkingHours data={d} />
-            <h2>{t("requestScheduleChange")}</h2>
+            <h2>{t("editAvailability")}</h2>
             <ScheduleEditor
               key={JSON.stringify(d)}
               doctor={access.doctor_id}
               data={d}
-              requestMode
+              doctorDirect
             />
           </>
         )}
       </QueryState>
-      <LeaveRequest />
       <DoctorRequests />
     </>
-  );
-}
-const leaveSchema = z
-  .object({
-    kind: z.enum(["day_off", "vacation"]),
-    starts_at: z.string().min(1),
-    ends_at: z.string().min(1),
-    reason: z.string().trim().min(5).max(2000),
-  })
-  .refine((v) => v.ends_at > v.starts_at, { path: ["ends_at"] });
-function LeaveRequest() {
-  const { t } = useLocale(),
-    { clinic } = useClinic(),
-    m = useDoctorMutation("schedule-change-requests"),
-    f = useForm({
-      resolver: zodResolver(leaveSchema),
-      defaultValues: {
-        kind: "day_off",
-        starts_at: "",
-        ends_at: "",
-        reason: "",
-      },
-    });
-  return (
-    <form
-      className="panel stack-form"
-      noValidate
-      onSubmit={f.handleSubmit((v) => {
-        const start = toInstant(v.starts_at, clinic.timezone),
-          end = toInstant(v.ends_at, clinic.timezone);
-        if (!start || !end) {
-          f.setError("starts_at", { message: "fieldInvalid" });
-          return;
-        }
-        m.mutate(
-          {
-            kind: v.kind,
-            payload: { starts_at: start, ends_at: end },
-            reason: v.reason,
-          },
-          { onSuccess: () => f.reset() },
-        );
-      })}
-    >
-      <h3>{t("requestLeave")}</h3>
-      <label>
-        {t("requestKind")}
-        <select {...f.register("kind")}>
-          <option value="day_off">{t("dayOff")}</option>
-          <option value="vacation">{t("vacation")}</option>
-        </select>
-      </label>
-      {["starts_at", "ends_at", "reason"].map((k) => (
-        <label key={k}>
-          {t(k === "reason" ? "requestReason" : k)}
-          {k === "reason" ? (
-            <textarea maxLength={2000} {...f.register(k)} />
-          ) : (
-            <input type="datetime-local" {...f.register(k)} />
-          )}{" "}
-          {f.formState.errors[k] && (
-            <small className="field-error">{t("fieldInvalid")}</small>
-          )}
-        </label>
-      ))}
-      <Submit busy={m.isPending}>{t("submitRequest")}</Submit>
-      {m.error && <Failure error={m.error} />}
-    </form>
   );
 }
 export function DoctorRequests() {

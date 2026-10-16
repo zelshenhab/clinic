@@ -1,0 +1,15 @@
+{
+  "fixture": "600ms API delay, 800ms pointer intent, 31s wall-clock jump",
+  "results": {
+    "before": {
+      "clickToRowsMs": 801,
+      "paginationKeepsRows": false,
+      "catalogRevisitRequests": 1
+    },
+    "after": {
+      "clickToRowsMs": 73,
+      "paginationKeepsRows": true,
+      "catalogRevisitRequests": 0
+    }
+  }
+}

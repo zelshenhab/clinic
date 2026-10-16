@@ -145,18 +145,77 @@ try {
     .getByRole("link", { name: "My schedule", exact: true })
     .click();
   let editor = page.locator("form.stack-form").first();
-  await editor
-    .getByLabel("Request reason", { exact: true })
-    .fill("Please approve my current weekly schedule");
-  await editor
-    .getByRole("button", { name: "Submit request", exact: true })
-    .click();
+  await editor.locator('input[type="time"]').nth(1).fill("18:15");
+  const savedPromise = page.waitForResponse(
+    (r) =>
+      r.url().includes("/doctor/schedule") && r.request().method() === "PUT",
+  );
+  await editor.getByRole("button", { name: "Save", exact: true }).click();
+  assert.equal((await savedPromise).status(), 200);
   await page
-    .getByRole("cell", {
-      name: "Please approve my current weekly schedule",
-      exact: true,
-    })
+    .locator(".doctor-hours .shift-card")
+    .filter({ hasText: "09:00–18:15" })
+    .first()
     .waitFor();
+  const me = (
+    await (
+      await page.request.get(api + "/doctor/me", {
+        headers,
+        params: { clinic_id: clinic },
+      })
+    ).json()
+  ).data;
+  const svc = appointments.items[0].service_id;
+  let freeSlots = [],
+    date = "";
+  for (let offset = 1; offset < 8; offset++) {
+    date = new Date(Date.now() + offset * 86400000).toISOString().slice(0, 10);
+    const response = await page.request.get(
+      api + "/clinics/" + clinic + "/availability",
+      { params: { doctor_id: me.id, service_id: svc, date } },
+    );
+    assert.equal(response.status(), 200);
+    freeSlots = (await response.json()).data;
+    if (freeSlots.length) break;
+  }
+  assert.ok(freeSlots.length);
+  const chosen = freeSlots[0].starts_at,
+    patientHeaders = {
+      Authorization:
+        "Bearer " + tokenFor("10000000-0000-4000-8000-000000000002"),
+    };
+  const booked = await page.request.post(
+    api + "/clinics/" + clinic + "/booking/appointments",
+    {
+      headers: patientHeaders,
+      data: { doctor_id: me.id, service_id: svc, starts_at: chosen },
+    },
+  );
+  assert.equal(booked.status(), 201);
+  const available = (
+    await (
+      await page.request.get(api + "/clinics/" + clinic + "/availability", {
+        params: { doctor_id: me.id, service_id: svc, date },
+      })
+    ).json()
+  ).data;
+  assert.ok(
+    !available.some(
+      (slot) => Date.parse(slot.starts_at) === Date.parse(chosen),
+    ),
+  );
+  assert.equal(
+    (
+      await page.request.post(
+        api + "/clinics/" + clinic + "/booking/appointments",
+        {
+          headers: patientHeaders,
+          data: { doctor_id: me.id, service_id: svc, starts_at: chosen },
+        },
+      )
+    ).status(),
+    409,
+  );
   const requests = (
     await (
       await page.request.get(api + "/doctor/requests", {
@@ -165,7 +224,7 @@ try {
       })
     ).json()
   ).data;
-  assert.equal(requests.items.length, 2);
+  assert.equal(requests.items.length, 1);
   const reschedule = requests.items.find((r) => r.kind === "reschedule");
   const denied = await page.request.patch(
     api + "/admin/clinics/" + clinic + "/doctor-requests/" + reschedule.id,
@@ -253,30 +312,19 @@ try {
     .getByRole("link", { name: "Schedules", exact: true })
     .click();
   await adminPage
+    .getByRole("combobox", { name: "Request status", exact: true })
+    .selectOption("rejected");
+  await adminPage
     .getByRole("row")
-    .filter({ hasText: "Please approve my current weekly schedule" })
+    .filter({ hasText: "Please review a later appointment time" })
     .getByRole("button", { name: "View details", exact: true })
     .click();
-  let review = adminPage.locator("dialog[open]");
-  await review.getByRole("button", { name: "Approve", exact: true }).click();
-  await review.getByRole("button", { name: "Confirm", exact: true }).click();
-  await review.waitFor({ state: "hidden" });
-  const updated = (
-    await (
-      await page.request.get(api + "/doctor/requests", {
-        headers,
-        params: { clinic_id: clinic },
-      })
-    ).json()
-  ).data;
-  assert.equal(
-    updated.items.find((r) => r.kind === "schedule").status,
-    "approved",
-  );
+  await adminPage.locator("dialog[open] .status.rejected").waitFor();
+  await adminPage.getByRole("button", { name: "Close", exact: true }).click();
   await adminPage.close();
   assert.deepEqual(errors, []);
   console.log(
-    "Doctor browser QA passed: private login/layout, 8 pages, calendar views/schedule, own patients, reschedule and schedule requests, admin-only review, notifications, clinic switch, RU/EN and mobile layout.",
+    "Doctor browser QA passed: private login/layout, 8 pages, calendar views/schedule, own patients, direct schedule save, public slots, patient booking, duplicate-booking rejection, reschedule request, admin-only review, notifications, clinic switch, RU/EN and mobile layout.",
   );
 } catch (e) {
   await page.screenshot({

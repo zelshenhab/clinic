@@ -140,7 +140,10 @@ void main() {
           CatalogAdapter(
             responder: (_) => (
               200,
-              {'clinic': clinicJson(clinicA), 'online_booking_enabled': true},
+              {
+                'clinic': clinicJson(clinicA),
+                'online_booking_enabled': 'invalid',
+              },
             ),
           ),
         ),

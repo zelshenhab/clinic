@@ -63,8 +63,22 @@ export function Failure({ error, retry }) {
 }
 export function QueryState({ query, children }) {
   if (query.isPending) return <Skeleton />;
-  if (query.error) return <Failure error={query.error} retry={query.refetch} />;
-  return children(query.data);
+  if (
+    query.error &&
+    (query.data === undefined || [401, 403].includes(query.error.status))
+  )
+    return <Failure error={query.error} retry={query.refetch} />;
+  return (
+    <>
+      {query.error && <Failure error={query.error} retry={query.refetch} />}
+      <div
+        aria-busy={query.isFetching || undefined}
+        className={query.isPlaceholderData ? "query-updating" : undefined}
+      >
+        {children(query.data)}
+      </div>
+    </>
+  );
 }
 export function Status({ value }) {
   const { t } = useLocale();

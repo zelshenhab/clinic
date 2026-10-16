@@ -1,3 +1,4 @@
+import '../../features/appointments/presentation/bloc/booking_flow_cubit.dart';
 import '../../features/clinic_selection/domain/entities/clinic.dart';
 import '../../core/catalog/catalog_query.dart';
 import '../../core/widgets/catalog_image.dart';
@@ -73,6 +74,12 @@ GoRouter createRouter(GetIt di, RouterRefresh refresh) => GoRouter(
   ),
   redirect: (context, state) {
     if (di<AuthCubit>().state.status == AuthStatus.authenticated &&
+        state.uri.queryParameters['from'] == 'booking') {
+      final params = Map<String, String>.from(state.uri.queryParameters)
+        ..remove('from');
+      return Uri(path: '/booking', queryParameters: params).toString();
+    }
+    if (di<AuthCubit>().state.status == AuthStatus.authenticated &&
         const [
           'appointments',
           'notifications',
@@ -85,6 +92,13 @@ GoRouter createRouter(GetIt di, RouterRefresh refresh) => GoRouter(
       clinicSelected: di<ClinicCubit>().state.selected != null,
       auth: di<AuthCubit>().state,
     );
+    if (redirect == '/profile-completion' &&
+        state.uri.queryParameters['from'] == 'booking') {
+      return Uri(
+        path: '/profile-completion',
+        queryParameters: state.uri.queryParameters,
+      ).toString();
+    }
     if (redirect == '/profile-completion' &&
         const [
           'appointments',
@@ -192,10 +206,13 @@ GoRouter createRouter(GetIt di, RouterRefresh refresh) => GoRouter(
       builder: (_, state) => clinicRoute(
         (clinic) => BlocProvider(
           create: (_) => di<BookingEntryCubit>(),
-          child: BookingEntryPage(
-            key: ValueKey(state.uri.toString()),
-            clinicId: clinic.id,
-            query: routeQuery(state),
+          child: BlocProvider(
+            create: (_) => di<BookingFlowCubit>(),
+            child: BookingEntryPage(
+              key: ValueKey(state.uri.toString()),
+              clinicId: clinic.id,
+              query: routeQuery(state),
+            ),
           ),
         ),
       ),

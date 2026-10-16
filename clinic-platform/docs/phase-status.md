@@ -35,3 +35,7 @@ Acceptance remains pending live Supabase Auth, invitations, Storage and private 
 Implemented: dedicated doctor workspace in the existing dashboard, server-derived doctor identity, own appointment/calendar/patient/profile reads, real SQL statistics, safe status actions, durable notifications and clinic-scoped private updates. Added schedule/day-off/vacation/rescheduling requests with administrator review, atomic conflict checks and stale schedule protection. See [doctor delivery](phase-5-doctor.md).
 
 Verified locally through migrated SQL, HTTP/UI tests, browser doctor/admin workflows, production builds and Flutter regressions. Migration 007 and real doctor staff assignments still need application/provisioning on the hosted project; live provider and mobile booking acceptance are not claimed complete.
+
+## Direct availability and booking integration (2026-10-16)
+
+Implemented doctor-owned direct schedule editing, public non-identifying available slots and Flutter date/slot selection with authenticated booking/receipt and automatic invalidation. This supersedes mandatory approval for ordinary doctor availability edits; existing booking conflicts remain protected. Dashboard route/data preparation, scoped freshness policies, stable pagination and concurrent-only Auth lookup sharing improve navigation. See [delivery and performance evidence](availability-and-performance.md). Hosted migration 008 and live OTP/WebSocket acceptance remain required.

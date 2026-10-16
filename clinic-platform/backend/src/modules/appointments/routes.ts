@@ -8,6 +8,20 @@ export function bookingRoutes(db: SupabaseClient) {
   const router = Router(),
     repo = adminRepository(db),
     base = "/clinics/:clinicId";
+  router.get(base + "/availability", async (req, res) => {
+    const clinic = uuid.parse(req.params.clinicId),
+      q = availabilitySchema.parse(req.query);
+    res.json({
+      success: true,
+      data: await repo.rpc("public_availability", {
+        p_clinic: clinic,
+        p_doctor: q.doctor_id,
+        p_service: q.service_id,
+        p_date: q.date,
+      }),
+      message: "Available slots",
+    });
+  });
   router.use(base + "/booking", async (req, res, next) => {
     const user = await authenticate(db, req.headers.authorization);
     res.locals.actor = user.id;

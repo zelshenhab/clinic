@@ -1,5 +1,7 @@
 # Phase 5 extension: doctor workspace
 
+**2026-10-16 update:** regular availability edits are now saved directly, and Flutter booking UI is implemented. The newer [availability/performance delivery](availability-and-performance.md) supersedes the approval-only and pending-booking-UI descriptions below.
+
 Implemented in the existing React application and Node/Supabase architecture. No separate doctor frontend or database was introduced. Live-provider acceptance remains pending; the hosted project has not been migrated by this implementation session.
 
 ## Delivered behavior

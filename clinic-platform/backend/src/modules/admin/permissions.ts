@@ -1,3 +1,4 @@
+import { inFlight } from "../../common/async/in-flight.js";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { AppError, AuthorizationError } from "../../common/errors/app-error.js";
 import type { StaffRole } from "../../common/middleware/auth.js";
@@ -29,11 +30,16 @@ export async function memberships(
   db: SupabaseClient,
   userId: string,
 ): Promise<Membership[]> {
-  const { data, error } = await db
-    .from("staff_memberships")
-    .select("id,role,clinic_id,doctor_id")
-    .eq("user_id", userId)
-    .eq("active", true);
+  const { data, error } = await inFlight(
+    db,
+    "memberships:" + userId,
+    async () =>
+      await db
+        .from("staff_memberships")
+        .select("id,role,clinic_id,doctor_id")
+        .eq("user_id", userId)
+        .eq("active", true),
+  );
   if (error)
     throw new AppError(
       503,
