@@ -24,6 +24,10 @@ import '../../features/appointments/data/repositories/api_booking_context_reposi
 import '../../features/appointments/domain/usecases/prepare_booking.dart';
 import '../../features/appointments/presentation/bloc/booking_entry_cubit.dart';
 import '../../core/utils/contact_clinic.dart';
+import '../../features/family/data/repositories/api_family_repository.dart';
+import '../../features/family/domain/repositories/family_repository.dart';
+import '../../features/documents/data/repositories/api_documents_repository.dart';
+import '../../features/documents/domain/repositories/documents_repository.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -83,6 +87,10 @@ Future<GetIt> configureDependencies(AppConfig config) async {
   );
   di.registerSingleton<PatientToolsRepository>(
     ApiPatientToolsRepository(di<ApiClient>()),
+  );
+  di.registerSingleton<FamilyRepository>(ApiFamilyRepository(di<ApiClient>()));
+  di.registerSingleton<DocumentsRepository>(
+    ApiDocumentsRepository(di<ApiClient>()),
   );
   di.registerSingleton<PatientUpdates>(SupabasePatientUpdates(client));
   di.registerSingleton<BookingRepository>(

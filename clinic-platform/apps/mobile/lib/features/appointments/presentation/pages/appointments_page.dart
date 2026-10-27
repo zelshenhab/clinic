@@ -12,6 +12,9 @@ import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../domain/entities/appointment.dart';
 import '../bloc/appointments_cubit.dart';
+import '../../../clinic_selection/domain/entities/clinic.dart';
+import '../../../../core/utils/calendar_export.dart';
+import '../../../../core/widgets/add_to_calendar_button.dart';
 
 class AppointmentsPage extends StatelessWidget {
   const AppointmentsPage({
@@ -20,8 +23,10 @@ class AppointmentsPage extends StatelessWidget {
     required this.timezone,
     this.tools,
     this.booking,
+    this.clinic,
   });
   final String clinicId, timezone;
+  final Clinic? clinic;
   final PatientToolsRepository? tools;
   final BookingRepository? booking;
   @override
@@ -68,6 +73,9 @@ class AppointmentsPage extends StatelessWidget {
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     Text(status),
+                    if (item.familyMemberId != null &&
+                        (item.patientName ?? '').isNotEmpty)
+                      Text(t.appointmentFor(item.patientName!)),
                     if (item.doctorName.isNotEmpty)
                       Text(localized(item.doctorName, locale)),
                     if (item.serviceName.isNotEmpty)
@@ -93,6 +101,30 @@ class AppointmentsPage extends StatelessWidget {
                         tools: tools!,
                         booking: booking!,
                         timezone: timezone,
+                      ),
+                    if (item.startsAt.isAfter(DateTime.now()) &&
+                        ["pending", "confirmed"].contains(item.status))
+                      AddToCalendarButton(
+                        entry: CalendarEntry(
+                          title: t.calendarEventTitle(
+                            localized(item.doctorName, locale),
+                          ),
+                          description: [
+                            localized(item.serviceName, locale),
+                            if (item.familyMemberId != null) ?item.patientName,
+                          ].where((v) => v.isNotEmpty).join('\n'),
+                          location: clinic == null
+                              ? null
+                              : [
+                                  localized(clinic!.name, locale),
+                                  localized(clinic!.address, locale),
+                                ].where((v) => v.isNotEmpty).join(', '),
+                          startsAt: item.startsAt,
+                          endsAt:
+                              item.endsAt ??
+                              item.startsAt.add(const Duration(minutes: 30)),
+                          timezone: timezone,
+                        ),
                       ),
                   ],
                 ),

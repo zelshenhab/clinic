@@ -25,6 +25,7 @@ export const permissions: Record<string, StaffRole[]> = {
   settings: ["CLINIC_ADMIN"],
   staff: [],
   upload: ["CLINIC_ADMIN"],
+  records: ["CLINIC_ADMIN", "RECEPTIONIST"],
 };
 export async function memberships(
   db: SupabaseClient,

@@ -19,6 +19,7 @@ import {
 } from "../../components/Shared";
 import { clinicDate } from "../../utils/time";
 import AppointmentDetail from "./AppointmentDetail";
+import MedicalRecords from "./MedicalRecords";
 const schema = z
   .object({
     full_name: z.string().min(2).max(120),
@@ -206,6 +207,7 @@ function PatientDetails({ id }) {
           </>
         )}
       </QueryState>
+      <MedicalRecords patientId={id} appointments={history.data?.items} />
       {appointment && (
         <AppointmentDetail
           id={appointment}

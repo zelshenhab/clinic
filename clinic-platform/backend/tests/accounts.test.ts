@@ -21,6 +21,10 @@ const patients = {
   profile: vi.fn(async () => null),
   update: vi.fn(async () => ({ full_name: "Demo" })),
   appointments: vi.fn(async () => []),
+  familyMembers: vi.fn(async () => []),
+  addFamilyMember: vi.fn(async () => ({ id: "member" })),
+  updateFamilyMember: vi.fn(async () => ({ id: "member" })),
+  removeFamilyMember: vi.fn(async () => {}),
 };
 const auth = {
   user: async (header?: string) => {
@@ -78,4 +82,58 @@ it("requires verified identity and clinic UUID for notifications", async () => {
     .set("Authorization", "Bearer valid");
   expect(r.status).toBe(200);
   expect(patients.notifications).toHaveBeenCalledWith("verified-user", id);
+});
+
+it("manages family members only for the verified account with validated input", async () => {
+  const app = createApp(config, clinics, { auth, patients });
+  expect((await request(app).get("/api/v1/me/family-members")).status).toBe(401);
+  const bad = await request(app)
+    .post("/api/v1/me/family-members")
+    .set("Authorization", "Bearer valid")
+    .send({ full_name: "Child", relationship: "pet", owner_id: "other" });
+  expect(bad.status).toBe(400);
+  expect(patients.addFamilyMember).not.toHaveBeenCalled();
+  const future = await request(app)
+    .post("/api/v1/me/family-members")
+    .set("Authorization", "Bearer valid")
+    .send({ full_name: "Child", relationship: "child", date_of_birth: "2999-01-01" });
+  expect(future.status).toBe(400);
+  const created = await request(app)
+    .post("/api/v1/me/family-members")
+    .set("Authorization", "Bearer valid")
+    .send({ full_name: " Child ", relationship: "child", date_of_birth: "2020-05-01" });
+  expect(created.status).toBe(201);
+  expect(patients.addFamilyMember).toHaveBeenCalledWith("verified-user", {
+    full_name: "Child",
+    relationship: "child",
+    date_of_birth: "2020-05-01",
+  });
+  const id = "12a30244-3000-4000-8000-000000000002";
+  expect(
+    (
+      await request(app)
+        .patch("/api/v1/me/family-members/" + id)
+        .set("Authorization", "Bearer valid")
+        .send({ full_name: "Mother", relationship: "parent" })
+    ).status,
+  ).toBe(200);
+  expect(patients.updateFamilyMember).toHaveBeenCalledWith("verified-user", id, {
+    full_name: "Mother",
+    relationship: "parent",
+  });
+  expect(
+    (
+      await request(app)
+        .delete("/api/v1/me/family-members/not-a-uuid")
+        .set("Authorization", "Bearer valid")
+    ).status,
+  ).toBe(400);
+  expect(
+    (
+      await request(app)
+        .delete("/api/v1/me/family-members/" + id)
+        .set("Authorization", "Bearer valid")
+    ).status,
+  ).toBe(200);
+  expect(patients.removeFamilyMember).toHaveBeenCalledWith("verified-user", id);
 });

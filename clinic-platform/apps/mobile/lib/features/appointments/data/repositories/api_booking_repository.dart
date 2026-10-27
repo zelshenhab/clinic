@@ -49,8 +49,9 @@ class ApiBookingRepository implements BookingRepository {
     String doctor,
     String service,
     DateTime startsAt,
-    RequestCancellation token,
-  ) async {
+    RequestCancellation token, {
+    String? familyMemberId,
+  }) async {
     final data = await api.request(
       '/clinics/$clinic/booking/appointments',
       method: 'POST',
@@ -60,6 +61,7 @@ class ApiBookingRepository implements BookingRepository {
         'doctor_id': doctor,
         'service_id': service,
         'starts_at': startsAt.toUtc().toIso8601String(),
+        'family_member_id': ?familyMemberId,
       },
     );
     return CatalogParser.safe(() {
@@ -68,6 +70,7 @@ class ApiBookingRepository implements BookingRepository {
       if (row['doctor_id'] != doctor ||
           row['service_id'] != service ||
           !instant(row['starts_at']).isAtSameMomentAs(startsAt) ||
+          row['family_member_id'] != familyMemberId ||
           !['pending', 'confirmed'].contains(row['status'])) {
         throw const FormatException();
       }
@@ -76,6 +79,8 @@ class ApiBookingRepository implements BookingRepository {
         startsAt: instant(row['starts_at']),
         status: row['status'] as String,
         price: CatalogParser.price(row['price_rub']),
+        endsAt: row['ends_at'] == null ? null : instant(row['ends_at']),
+        familyMemberId: familyMemberId,
       );
     });
   }

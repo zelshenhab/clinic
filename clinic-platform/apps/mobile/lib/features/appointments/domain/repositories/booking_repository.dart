@@ -11,9 +11,13 @@ class BookingReceipt {
     required this.startsAt,
     required this.status,
     required this.price,
+    this.endsAt,
+    this.familyMemberId,
   });
   final String id, status;
+  final String? familyMemberId;
   final DateTime startsAt;
+  final DateTime? endsAt;
   final double price;
 }
 
@@ -30,8 +34,9 @@ abstract interface class BookingRepository {
     String doctor,
     String service,
     DateTime startsAt,
-    RequestCancellation token,
-  );
+    RequestCancellation token, {
+    String? familyMemberId,
+  });
 }
 
 abstract interface class AvailabilityUpdates {

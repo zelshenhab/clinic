@@ -4,9 +4,11 @@ import { z } from "zod";
 import { authenticate } from "../../common/middleware/auth.js";
 import { adminRepository } from "../admin/repository.js";
 import { uuid, availabilitySchema, bookSchema } from "../admin/validation.js";
+import { medicalRecords } from "../medical_records/service.js";
 export function bookingRoutes(db: SupabaseClient) {
   const router = Router(),
     repo = adminRepository(db),
+    records = medicalRecords(db),
     base = "/clinics/:clinicId";
   router.get(base + "/availability", async (req, res) => {
     const clinic = uuid.parse(req.params.clinicId),
@@ -51,12 +53,32 @@ export function bookingRoutes(db: SupabaseClient) {
       }),
     });
   });
-  router.use(base + "/booking", async (req, res, next) => {
-    const user = await authenticate(db, req.headers.authorization);
-    res.locals.actor = user.id;
-    res.locals.clinic = uuid.parse(req.params.clinicId);
-    next();
-  });
+  router.use(
+    [base + "/booking", base + "/medical-records"],
+    async (req, res, next) => {
+      const user = await authenticate(db, req.headers.authorization);
+      res.locals.actor = user.id;
+      res.locals.clinic = uuid.parse(req.params.clinicId);
+      next();
+    },
+  );
+  router.get(base + "/medical-records", async (_req, res) =>
+    res.json({
+      success: true,
+      data: await records.patientList(res.locals.actor, res.locals.clinic),
+    }),
+  );
+  router.get(base + "/medical-records/:id/download", async (req, res) =>
+    res.json({
+      success: true,
+      data: await records.download(
+        res.locals.actor,
+        res.locals.clinic,
+        uuid.parse(req.params.id),
+        "patient",
+      ),
+    }),
+  );
   router.get(base + "/booking/availability", async (req, res) => {
     const q = availabilitySchema.parse(req.query);
     res.json({
@@ -72,7 +94,10 @@ export function bookingRoutes(db: SupabaseClient) {
     });
   });
   router.post(base + "/booking/appointments", async (req, res) => {
-    const input = bookSchema.omit({ patient_id: true }).parse(req.body);
+    const input = bookSchema
+      .omit({ patient_id: true })
+      .extend({ family_member_id: uuid.nullable().optional() })
+      .parse(req.body);
     res.status(201).json({
       success: true,
       data: await repo.rpc("patient_book", {

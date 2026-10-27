@@ -38,6 +38,11 @@ class ApiAppointmentRepository implements AppointmentRepository {
             row['service_name'] as Map? ?? {},
           ),
           attendanceStatus: row['attendance_status'] as String? ?? 'scheduled',
+          endsAt: row['ends_at'] == null
+              ? null
+              : DateTime.parse(row['ends_at'] as String),
+          familyMemberId: row['family_member_id'] as String?,
+          patientName: row['patient_name'] as String?,
         );
       }).toList();
     } catch (_) {

@@ -45,6 +45,10 @@ import '../../features/appointments/presentation/pages/appointments_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
 import 'route_guard.dart';
+import '../../features/family/domain/repositories/family_repository.dart';
+import '../../features/family/presentation/pages/family_page.dart';
+import '../../features/documents/domain/repositories/documents_repository.dart';
+import '../../features/documents/presentation/pages/documents_page.dart';
 
 class RouterRefresh extends ChangeNotifier {
   RouterRefresh(ClinicCubit clinic, AuthCubit auth) {
@@ -87,6 +91,8 @@ GoRouter createRouter(GetIt di, RouterRefresh refresh) => GoRouter(
           'appointments',
           'notifications',
           'waitlist',
+          'family',
+          'documents',
         ].contains(state.uri.queryParameters['from'])) {
       return '/${state.uri.queryParameters['from']}';
     }
@@ -108,6 +114,8 @@ GoRouter createRouter(GetIt di, RouterRefresh refresh) => GoRouter(
           'appointments',
           'notifications',
           'waitlist',
+          'family',
+          'documents',
         ].contains(state.uri.queryParameters['from'])) {
       return '/profile-completion?from=${state.uri.queryParameters['from']}';
     }
@@ -145,6 +153,21 @@ GoRouter createRouter(GetIt di, RouterRefresh refresh) => GoRouter(
       builder: (_, _) => const ProfileCompletionPage(),
     ),
     GoRoute(path: '/settings', builder: (_, _) => const SettingsPage()),
+    GoRoute(
+      path: '/documents',
+      builder: (_, _) => clinicRoute(
+        (clinic) => DocumentsPage(
+          key: ValueKey(clinic.id),
+          clinicId: clinic.id,
+          timezone: clinic.timezone,
+          documents: di<DocumentsRepository>(),
+        ),
+      ),
+    ),
+    GoRoute(
+      path: '/family',
+      builder: (_, _) => FamilyPage(family: di<FamilyRepository>()),
+    ),
     GoRoute(
       path: '/specialties',
       builder: (_, _) => clinicRoute(
@@ -240,6 +263,7 @@ GoRouter createRouter(GetIt di, RouterRefresh refresh) => GoRouter(
               clinicId: clinic.id,
               query: routeQuery(state),
               tools: di<PatientToolsRepository>(),
+              family: di<FamilyRepository>(),
               initialDate: state.uri.queryParameters["date"],
             ),
           ),
@@ -281,6 +305,7 @@ GoRouter createRouter(GetIt di, RouterRefresh refresh) => GoRouter(
                 timezone: clinic.timezone,
                 tools: di<PatientToolsRepository>(),
                 booking: di<BookingRepository>(),
+                clinic: clinic,
               ),
             ),
           ),

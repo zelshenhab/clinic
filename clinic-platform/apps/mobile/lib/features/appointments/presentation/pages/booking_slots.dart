@@ -12,6 +12,12 @@ import '../../domain/entities/booking_context.dart';
 import '../bloc/booking_flow_cubit.dart';
 import '../../domain/repositories/patient_tools_repository.dart';
 import '../../../../core/errors/app_exception.dart';
+import '../../../../core/cancellation/request_cancellation.dart';
+import '../../../../core/localization/catalog_format.dart';
+import '../../../../core/utils/calendar_export.dart';
+import '../../../../core/widgets/add_to_calendar_button.dart';
+import '../../../family/domain/entities/family_member.dart';
+import '../../../family/domain/repositories/family_repository.dart';
 
 class BookingSlots extends StatefulWidget {
   const BookingSlots({
@@ -19,11 +25,13 @@ class BookingSlots extends StatefulWidget {
     required this.data,
     required this.query,
     this.tools,
+    this.family,
     this.initialDate,
   });
   final BookingContext data;
   final CatalogQuery query;
   final PatientToolsRepository? tools;
+  final FamilyRepository? family;
   final String? initialDate;
   @override
   State<BookingSlots> createState() => _BookingSlotsState();
@@ -35,6 +43,18 @@ class _BookingSlotsState extends State<BookingSlots>
   String? joinedDay;
   bool joining = false;
   FailureKind? waitFailure;
+  String? bookedFor;
+
+  // A failed family read still lets the patient book for themselves.
+  Future<List<FamilyMember>> _familyMembers() async {
+    if (widget.family == null) return const [];
+    try {
+      return await widget.family!.list(RequestCancellation());
+    } on AppException {
+      return const [];
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -238,6 +258,7 @@ class _BookingSlotsState extends State<BookingSlots>
                         tz.TZDateTime.from(state.receipt!.startsAt, zone),
                       ),
                     ),
+                    if (bookedFor != null) Text(t.appointmentFor(bookedFor!)),
                     Text(
                       state.receipt!.status == 'pending'
                           ? t.pending
@@ -249,6 +270,33 @@ class _BookingSlotsState extends State<BookingSlots>
                         symbol: '₽',
                       ).format(state.receipt!.price),
                     ),
+                    if (widget.data.doctor != null)
+                      AddToCalendarButton(
+                        entry: CalendarEntry(
+                          title: t.calendarEventTitle(
+                            localized(widget.data.doctor!.name, locale),
+                          ),
+                          description: [
+                            if (widget.data.service != null)
+                              localized(widget.data.service!.name, locale),
+                            ?bookedFor,
+                            '${t.bookingReference}: ${state.receipt!.id}',
+                          ].join('\n'),
+                          location: [
+                            localized(widget.data.clinic.name, locale),
+                            localized(widget.data.clinic.address, locale),
+                          ].where((v) => v.isNotEmpty).join(', '),
+                          startsAt: state.receipt!.startsAt,
+                          endsAt:
+                              state.receipt!.endsAt ??
+                              state.receipt!.startsAt.add(
+                                Duration(
+                                  minutes: widget.data.service?.duration ?? 30,
+                                ),
+                              ),
+                          timezone: widget.data.clinic.timezone,
+                        ),
+                      ),
                     TextButton(
                       onPressed: () => context.go('/appointments'),
                       child: Text(t.appointments),
@@ -278,29 +326,80 @@ class _BookingSlotsState extends State<BookingSlots>
                         );
                         return;
                       }
+                      final members = await _familyMembers();
+                      if (!context.mounted) return;
+                      String? patient;
                       final approved = await showDialog<bool>(
                         context: context,
-                        builder: (ctx) => AlertDialog(
-                          title: Text(t.confirmBooking),
-                          content: Text(
-                            DateFormat(
-                              'd MMMM y · HH:mm',
-                              locale,
-                            ).format(tz.TZDateTime.from(state.selected!, zone)),
+                        builder: (ctx) => StatefulBuilder(
+                          builder: (ctx, setDialog) => AlertDialog(
+                            title: Text(t.confirmBooking),
+                            content: SingleChildScrollView(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    DateFormat(
+                                      'd MMMM y · HH:mm',
+                                      locale,
+                                    ).format(
+                                      tz.TZDateTime.from(state.selected!, zone),
+                                    ),
+                                  ),
+                                  if (members.isNotEmpty) ...[
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      t.bookingFor,
+                                      style: Theme.of(ctx).textTheme.titleSmall,
+                                    ),
+                                    RadioGroup<String?>(
+                                      groupValue: patient,
+                                      onChanged: (v) =>
+                                          setDialog(() => patient = v),
+                                      child: Column(
+                                        children: [
+                                          RadioListTile<String?>(
+                                            contentPadding: EdgeInsets.zero,
+                                            value: null,
+                                            title: Text(t.myself),
+                                          ),
+                                          for (final m in members)
+                                            RadioListTile<String?>(
+                                              contentPadding: EdgeInsets.zero,
+                                              value: m.id,
+                                              title: Text(m.fullName),
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx, false),
+                                child: Text(t.cancel),
+                              ),
+                              FilledButton(
+                                onPressed: () => Navigator.pop(ctx, true),
+                                child: Text(t.confirmBooking),
+                              ),
+                            ],
                           ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(ctx, false),
-                              child: Text(t.cancel),
-                            ),
-                            FilledButton(
-                              onPressed: () => Navigator.pop(ctx, true),
-                              child: Text(t.confirmBooking),
-                            ),
-                          ],
                         ),
                       );
-                      if (approved == true && mounted) await flow.book();
+                      if (approved == true && mounted) {
+                        setState(
+                          () => bookedFor = patient == null
+                              ? null
+                              : members
+                                    .firstWhere((m) => m.id == patient)
+                                    .fullName,
+                        );
+                        await flow.book(familyMemberId: patient);
+                      }
                     },
             ),
             TextButton(

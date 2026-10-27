@@ -76,10 +76,16 @@ class _NotificationActionsState extends State<NotificationActions> {
         Wrap(
           children: [
             TextButton(
-              onPressed: () => context.push(
-                n.kind == 'waitlist' ? '/waitlist' : '/appointments',
-              ),
-              child: Text(n.kind == 'waitlist' ? t.waitlist : t.appointments),
+              onPressed: () => context.push(switch (n.kind) {
+                'waitlist' => '/waitlist',
+                'document' => '/documents',
+                _ => '/appointments',
+              }),
+              child: Text(switch (n.kind) {
+                'waitlist' => t.waitlist,
+                'document' => t.medicalDocuments,
+                _ => t.appointments,
+              }),
             ),
             if (n.readAt == null)
               TextButton(

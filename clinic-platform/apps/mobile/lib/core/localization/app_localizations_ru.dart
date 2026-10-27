@@ -599,4 +599,112 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get inConsultation => 'На приёме';
+
+  @override
+  String get familyMembers => 'Моя семья';
+
+  @override
+  String get familyMembersHelp =>
+      'Добавьте родственников, чтобы записывать их на приём со своего аккаунта.';
+
+  @override
+  String get noFamilyMembers => 'Родственники пока не добавлены';
+
+  @override
+  String get addFamilyMember => 'Добавить родственника';
+
+  @override
+  String get editFamilyMember => 'Изменить данные';
+
+  @override
+  String get removeFamilyMember => 'Удалить';
+
+  @override
+  String get removeFamilyMemberTitle => 'Удалить родственника?';
+
+  @override
+  String get removeFamilyMemberBody =>
+      'Существующие записи сохранятся, но записывать этого человека будет нельзя.';
+
+  @override
+  String get relationship => 'Кем приходится';
+
+  @override
+  String get relationChild => 'Ребёнок';
+
+  @override
+  String get relationSpouse => 'Супруг(а)';
+
+  @override
+  String get relationParent => 'Родитель';
+
+  @override
+  String get relationSibling => 'Брат или сестра';
+
+  @override
+  String get relationOther => 'Другое';
+
+  @override
+  String get dateOfBirthOptional => 'Дата рождения (необязательно)';
+
+  @override
+  String get clearDate => 'Очистить дату';
+
+  @override
+  String get bookingFor => 'Для кого запись?';
+
+  @override
+  String get myself => 'Для меня';
+
+  @override
+  String appointmentFor(String name) {
+    return 'Пациент: $name';
+  }
+
+  @override
+  String get familyLimitReached => 'Можно добавить не более 10 родственников.';
+
+  @override
+  String get addToCalendar => 'Добавить в календарь';
+
+  @override
+  String get calendarUnavailable =>
+      'Не удалось открыть календарь на этом устройстве.';
+
+  @override
+  String calendarEventTitle(String doctor) {
+    return 'Приём: $doctor';
+  }
+
+  @override
+  String get medicalDocuments => 'Медицинские документы';
+
+  @override
+  String get noDocuments =>
+      'Здесь появятся заключения врачей и результаты анализов';
+
+  @override
+  String get allDocuments => 'Все';
+
+  @override
+  String get docReport => 'Заключение врача';
+
+  @override
+  String get docLabResult => 'Результаты анализов';
+
+  @override
+  String get docImaging => 'Исследование';
+
+  @override
+  String get docPrescription => 'Назначение';
+
+  @override
+  String get docOther => 'Документ';
+
+  @override
+  String get openDocument => 'Открыть';
+
+  @override
+  String get documentUnavailable =>
+      'Не удалось открыть документ. Попробуйте снова.';
 }

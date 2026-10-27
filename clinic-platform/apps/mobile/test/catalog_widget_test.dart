@@ -1,3 +1,5 @@
+import 'package:clinic_mobile/features/family/data/repositories/api_family_repository.dart';
+import 'package:clinic_mobile/features/family/domain/repositories/family_repository.dart';
 import 'package:clinic_mobile/features/appointments/domain/repositories/patient_tools_repository.dart';
 import 'package:clinic_mobile/features/appointments/data/repositories/api_patient_tools_repository.dart';
 import 'package:clinic_mobile/features/appointments/presentation/bloc/booking_flow_cubit.dart';
@@ -75,6 +77,7 @@ void main() {
       di.registerSingleton<PatientToolsRepository>(
         ApiPatientToolsRepository(api),
       );
+      di.registerSingleton<FamilyRepository>(ApiFamilyRepository(api));
       final doctors = LoadDoctors(ApiDoctorRepository(api)),
           specialties = LoadSpecialties(ApiSpecialtyRepository(api)),
           services = LoadServices(ApiServiceRepository(api));

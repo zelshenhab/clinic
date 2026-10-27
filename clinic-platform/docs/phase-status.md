@@ -45,3 +45,11 @@ Full-day availability update: the doctor weekly editor now covers all 24 hours/d
 ## Patient experience extension (October 16)
 
 Implemented locally: patient cancellation/rescheduling with editable clinic notice policy, durable in-app booking notifications and scheduled reminders, notification read state, doctor/service/day waitlists with availability offers, doctor week copying/day-off/vacation controls, reception/doctor arrival queues, public nearest-time search by specialty and Flutter private live refresh. See [activation, behavior and delivery limits](patient-experience.md). Migration 010 follows 009. Hosted migration execution and external phone push/SMS/email remain pending; in-app records and the API background worker are implemented without an external delivery provider.
+
+## Family profile and calendar export (2026-10-26)
+
+Implemented locally: patient family members (no separate logins) with booking on their behalf, staff-visible attending name with account holder, and system-calendar export for receipts and upcoming appointments. See [delivery](family-and-calendar.md). Migration 011 follows 010; hosted execution and on-device calendar behavior remain unverified.
+
+## Medical documents (2026-10-26)
+
+Implemented locally: staff and the patient's own doctor upload reports, lab results and imaging (PDF/JPEG/PNG) from the dashboard into a private bucket. Patients open them in Flutter through short-lived signed links, including family members' documents, with in-app notification. See [delivery](medical-documents.md). Migration 012 follows 011. Hosted Storage and device viewing remain unverified. Gosuslugi (ESIA) sign-in is not implemented: it requires clinic registration with Mintsifry and certified cryptography.

@@ -31,6 +31,7 @@ import {
 import { clinicDate, clinicNow, toInstant } from "../../utils/time";
 import AppointmentDetail from "../appointments/AppointmentDetail";
 import ScheduleTools from "./ScheduleTools";
+import MedicalRecords from "../appointments/MedicalRecords";
 import { ScheduleEditor } from "../schedules/SchedulesPage";
 export function DoctorOverview() {
   const { t, text, locale } = useLocale(),
@@ -282,6 +283,7 @@ function PatientHistory({ patient, onClose }) {
           </>
         )}
       </QueryState>
+      <MedicalRecords patientId={patient.id} appointments={q.data?.items} />
       {detail && (
         <AppointmentDetail id={detail} onClose={() => setDetail(null)} />
       )}

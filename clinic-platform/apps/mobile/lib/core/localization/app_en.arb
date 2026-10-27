@@ -226,5 +226,52 @@
         "type": "int"
       }
     }
-  }
+  },
+  "familyMembers": "My family",
+  "familyMembersHelp": "Add relatives to book appointments for them from your account.",
+  "noFamilyMembers": "No family members yet",
+  "addFamilyMember": "Add family member",
+  "editFamilyMember": "Edit family member",
+  "removeFamilyMember": "Remove",
+  "removeFamilyMemberTitle": "Remove family member?",
+  "removeFamilyMemberBody": "Existing appointments stay unchanged, but you will no longer be able to book for this person.",
+  "relationship": "Relationship",
+  "relationChild": "Child",
+  "relationSpouse": "Spouse",
+  "relationParent": "Parent",
+  "relationSibling": "Brother or sister",
+  "relationOther": "Other",
+  "dateOfBirthOptional": "Date of birth (optional)",
+  "clearDate": "Clear date",
+  "bookingFor": "Who is this appointment for?",
+  "myself": "Myself",
+  "appointmentFor": "For: {name}",
+  "@appointmentFor": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "familyLimitReached": "You can add up to 10 family members.",
+  "addToCalendar": "Add to calendar",
+  "calendarUnavailable": "Could not open the calendar on this device.",
+  "calendarEventTitle": "Appointment: {doctor}",
+  "@calendarEventTitle": {
+    "placeholders": {
+      "doctor": {
+        "type": "String"
+      }
+    }
+  },
+  "medicalDocuments": "Medical documents",
+  "noDocuments": "Doctor's reports and test results will appear here",
+  "allDocuments": "All",
+  "docReport": "Doctor's report",
+  "docLabResult": "Lab results",
+  "docImaging": "Imaging",
+  "docPrescription": "Prescription",
+  "docOther": "Document",
+  "openDocument": "Open",
+  "documentUnavailable": "Could not open the document. Try again."
 }

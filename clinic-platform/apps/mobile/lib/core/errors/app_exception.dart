@@ -9,6 +9,7 @@ enum FailureKind {
   bookingConflict,
   policyCutoff,
   slotsAvailable,
+  familyLimit,
   invalidResponse,
   cancelled,
   otpExpired,

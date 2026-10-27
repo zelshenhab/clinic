@@ -12,6 +12,7 @@ String failureMessage(AppLocalizations t, FailureKind? kind) => switch (kind) {
   FailureKind.bookingConflict => t.conflictError,
   FailureKind.policyCutoff => t.policyCutoff,
   FailureKind.slotsAvailable => t.slotsAvailable,
+  FailureKind.familyLimit => t.familyLimitReached,
   FailureKind.invalidResponse => t.responseError,
   FailureKind.otpExpired => t.otpExpiredError,
   FailureKind.otpInvalid => t.otpInvalidError,

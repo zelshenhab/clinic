@@ -6,6 +6,10 @@ import { AuthorizationError } from "../../common/errors/app-error.js";
 import { memberships } from "../admin/permissions.js";
 import { adminRepository } from "../admin/repository.js";
 import {
+  medicalRecords,
+  recordUpload,
+} from "../medical_records/service.js";
+import {
   uuid,
   scheduleSchema,
   calendarSchema,
@@ -76,7 +80,8 @@ export const doctorRequestSchema = z.discriminatedUnion("kind", [
 ]);
 export function doctorRoutes(db: SupabaseClient) {
   const router = Router(),
-    repo = adminRepository(db);
+    repo = adminRepository(db),
+    records = medicalRecords(db);
   const ok = (res: any, data: unknown, status = 200) =>
     res.status(status).json({
       success: true,
@@ -160,6 +165,53 @@ export function doctorRoutes(db: SupabaseClient) {
         ...clinicOnly.parse(req.query),
         id: uuid.parse(req.params.id),
       }),
+    ),
+  );
+  router.get("/patients/:id/medical-records", async (req, res) =>
+    ok(
+      res,
+      await records.list(
+        res.locals.doctor.user.id,
+        clinicOnly.parse(req.query).clinic_id,
+        uuid.parse(req.params.id),
+        true,
+      ),
+    ),
+  );
+  router.post("/patients/:id/medical-records", recordUpload, async (req, res) =>
+    ok(
+      res,
+      await records.upload(
+        res.locals.doctor.user.id,
+        clinicOnly.parse(req.query).clinic_id,
+        uuid.parse(req.params.id),
+        true,
+        req.body,
+        req.file,
+      ),
+      201,
+    ),
+  );
+  router.get("/medical-records/:id/download", async (req, res) =>
+    ok(
+      res,
+      await records.download(
+        res.locals.doctor.user.id,
+        clinicOnly.parse(req.query).clinic_id,
+        uuid.parse(req.params.id),
+        "doctor",
+      ),
+    ),
+  );
+  router.delete("/medical-records/:id", async (req, res) =>
+    ok(
+      res,
+      await records.remove(
+        res.locals.doctor.user.id,
+        clinicOnly.parse(req.query).clinic_id,
+        uuid.parse(req.params.id),
+        true,
+      ),
     ),
   );
   router.put("/schedule", async (req, res) => {

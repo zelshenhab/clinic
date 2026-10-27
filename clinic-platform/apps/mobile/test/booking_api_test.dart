@@ -72,6 +72,50 @@ void main() {
       expect(receipt.id, id);
     },
   );
+  test('family bookings send and verify the family member id', () async {
+    const member = '10000000-0000-4000-8000-000000000005';
+    final dio = Dio(BaseOptions(baseUrl: 'http://localhost/api/v1'));
+    final calls = <RequestOptions>[];
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (o, h) {
+          calls.add(o);
+          h.resolve(
+            Response(
+              requestOptions: o,
+              statusCode: 201,
+              data: {
+                'success': true,
+                'data': {
+                  'id': id,
+                  'clinic_id': c,
+                  'doctor_id': d,
+                  'service_id': s,
+                  'starts_at': '2026-12-01T06:00:00Z',
+                  'ends_at': '2026-12-01T06:30:00Z',
+                  'status': 'pending',
+                  'price_rub': 1000,
+                  'family_member_id': (o.data as Map)['family_member_id'],
+                },
+              },
+            ),
+          );
+        },
+      ),
+    );
+    final repo = ApiBookingRepository(ApiClient('', transport: dio));
+    final receipt = await repo.book(
+      c,
+      d,
+      s,
+      DateTime.utc(2026, 12, 1, 6),
+      RequestCancellation(),
+      familyMemberId: member,
+    );
+    expect((calls.last.data as Map)['family_member_id'], member);
+    expect(receipt.familyMemberId, member);
+    expect(receipt.endsAt, DateTime.utc(2026, 12, 1, 6, 30));
+  });
   test('mismatched committed bookings are rejected', () async {
     final dio = Dio(BaseOptions(baseUrl: 'http://localhost'));
     dio.interceptors.add(

@@ -15,7 +15,33 @@ import 'package:clinic_mobile/features/doctors/data/models/doctor_model.dart';
 import 'package:clinic_mobile/features/services/data/models/service_model.dart';
 import 'support/fakes.dart';
 import 'support/catalog_fixtures.dart';
+import 'package:clinic_mobile/core/cancellation/request_cancellation.dart';
+import 'package:clinic_mobile/features/family/domain/entities/family_member.dart';
+import 'package:clinic_mobile/features/family/domain/repositories/family_repository.dart';
 import 'booking_flow_test.dart' show BookingFake, UpdatesFake;
+
+class FamilyFake implements FamilyRepository {
+  @override
+  Future<List<FamilyMember>> list(RequestCancellation token) async => const [
+    FamilyMember(
+      id: 'member-1',
+      fullName: 'Fictional child',
+      relationship: FamilyRelationship.child,
+    ),
+  ];
+  @override
+  Future<FamilyMember> add(String n, FamilyRelationship r, DateTime? b) =>
+      throw UnimplementedError();
+  @override
+  Future<FamilyMember> update(
+    String id,
+    String n,
+    FamilyRelationship r,
+    DateTime? b,
+  ) => throw UnimplementedError();
+  @override
+  Future<void> remove(String id) => throw UnimplementedError();
+}
 
 void main() {
   for (final language in ['ru', 'en']) {
@@ -58,7 +84,11 @@ void main() {
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               home: Scaffold(
                 body: SingleChildScrollView(
-                  child: BookingSlots(data: data, query: const CatalogQuery()),
+                  child: BookingSlots(
+                    data: data,
+                    query: const CatalogQuery(),
+                    family: FamilyFake(),
+                  ),
                 ),
               ),
             ),
@@ -75,6 +105,8 @@ void main() {
         await tester.tap(find.text(label));
         await tester.pumpAndSettle();
         expect(repo.bookings, 0);
+        await tester.tap(find.text('Fictional child'));
+        await tester.pump();
         await tester.tap(find.widgetWithText(FilledButton, label).last);
         await tester.pumpAndSettle();
         expect(repo.bookings, 1);
@@ -83,6 +115,21 @@ void main() {
             language == 'ru'
                 ? 'Запись успешно создана'
                 : 'Appointment booked successfully',
+          ),
+          findsOneWidget,
+        );
+        expect(repo.bookedFor, 'member-1');
+        expect(
+          find.text(
+            language == 'ru'
+                ? 'Пациент: Fictional child'
+                : 'For: Fictional child',
+          ),
+          findsOneWidget,
+        );
+        expect(
+          find.text(
+            language == 'ru' ? 'Добавить в календарь' : 'Add to calendar',
           ),
           findsOneWidget,
         );

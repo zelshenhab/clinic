@@ -1830,3 +1830,233 @@ it("delivers the 24-hour reminder before the 1-hour window with an idempotent ev
     expect(rows).toHaveLength(1);
     expect(rows[0].event_key).toContain(":reminder:24:");
   }));
+it("books for an owned active family member and shows the attending person to staff", () =>
+  doctorFixture(async () => {
+    const parent = "53000000-0000-4000-8000-000000000001",
+      stranger = "53000000-0000-4000-8000-000000000002";
+    await db.query("insert into auth.users(id) values($1),($2)", [
+      parent,
+      stranger,
+    ]);
+    await db.query(
+      "insert into public.patient_profiles(id,full_name) values($1,'Parent account'),($2,'Other account')",
+      [parent, stranger],
+    );
+    const member = (
+      await db.query<any>(
+        "insert into public.family_members(owner_id,full_name,relationship) values($1,'Fictional child','child') returning id",
+        [parent],
+      )
+    ).rows[0].id;
+    const free: string[] = [];
+    for (let offset = 1; offset < 15 && free.length < 2; offset++) {
+      const day = (
+        await db.query<any>("select (current_date+$1::integer)::text as day", [
+          offset,
+        ])
+      ).rows[0].day;
+      const slots = (
+        await db.query<any>(
+          "select public.public_availability($1,$2,$3,$4) slots",
+          [clinic, doctor, service, day],
+        )
+      ).rows[0].slots;
+      for (const s of slots) if (free.length < 2) free.push(s.starts_at);
+    }
+    expect(free.length).toBe(2);
+    const input = (starts: string) =>
+      JSON.stringify({
+        doctor_id: doctor,
+        service_id: service,
+        starts_at: starts,
+        family_member_id: member,
+      });
+    await expect(
+      db.query("select public.patient_book($1,$2,$3)", [
+        stranger,
+        clinic,
+        input(free[0]),
+      ]),
+    ).rejects.toThrow("NOT_FOUND");
+    const booked = (
+      await db.query<any>("select public.patient_book($1,$2,$3) a", [
+        parent,
+        clinic,
+        input(free[0]),
+      ])
+    ).rows[0].a;
+    expect(booked.patient_id).toBe(parent);
+    expect(booked.family_member_id).toBe(member);
+    const view = (
+      await db.query<any>(
+        "select patient_name,account_holder_name,family_relationship from public.admin_appointments where id=$1",
+        [booked.id],
+      )
+    ).rows[0];
+    expect(view).toEqual({
+      patient_name: "Fictional child",
+      account_holder_name: "Parent account",
+      family_relationship: "child",
+    });
+    await db.query("update public.family_members set active=false where id=$1", [
+      member,
+    ]);
+    await expect(
+      db.query("select public.patient_book($1,$2,$3)", [
+        parent,
+        clinic,
+        input(free[1]),
+      ]),
+    ).rejects.toThrow("NOT_FOUND");
+    expect(
+      (
+        await db.query<any>(
+          "select patient_name from public.admin_appointments where id=$1",
+          [booked.id],
+        )
+      ).rows[0].patient_name,
+    ).toBe("Fictional child");
+    await expect(
+      db.query(
+        "update public.appointments set family_member_id=$1,patient_id=$2 where id=$3",
+        [member, stranger, booked.id],
+      ),
+    ).rejects.toThrow();
+  }));
+it("medical documents follow staff, doctor and owner access and notify the patient", () =>
+  doctorFixture(async ({ own }) => {
+    const input = (extra: Record<string, unknown> = {}) =>
+      JSON.stringify({
+        kind: "lab_result",
+        title: "Fictional blood test",
+        file_name: "blood.pdf",
+        mime_type: "application/pdf",
+        size_bytes: 1200,
+        storage_path: `${clinic}/${ownPatient}/${crypto.randomUUID()}.pdf`,
+        ...extra,
+      });
+    const save = (user: string, patient: string, doctorOnly: boolean, body = input()) =>
+      db.query<any>("select public.medical_record_save($1,$2,$3,$4,$5) r", [
+        user,
+        clinic,
+        patient,
+        body,
+        doctorOnly,
+      ]);
+    await expect(save(workspaceDoctorUser, foreignPatient, true)).rejects.toThrow(
+      "FORBIDDEN",
+    );
+    await expect(save(otherDoctorUser, ownPatient, true)).rejects.toThrow(
+      "FORBIDDEN",
+    );
+    const byDoctor = (
+      await save(
+        workspaceDoctorUser,
+        ownPatient,
+        true,
+        input({ appointment_id: own.id }),
+      )
+    ).rows[0].r;
+    expect(byDoctor.doctor_id).toBe(doctor);
+    expect(byDoctor.appointment_id).toBe(own.id);
+    const byAdmin = (await save(actor, ownPatient, false)).rows[0].r;
+    expect(byAdmin.doctor_id).toBeNull();
+    const notice = (
+      await db.query<any>(
+        "select kind,context from public.notifications where user_id=$1 and event_key=$2",
+        [ownPatient, "record:" + byDoctor.id],
+      )
+    ).rows[0];
+    expect(notice).toEqual({ kind: "document", context: { record_id: byDoctor.id } });
+    const mine = (
+      await db.query<any>("select public.patient_medical_records($1,$2) r", [
+        ownPatient,
+        clinic,
+      ])
+    ).rows[0].r;
+    expect(mine.map((r: any) => r.id).sort()).toEqual([byDoctor.id, byAdmin.id].sort());
+    expect(
+      (
+        await db.query<any>("select public.patient_medical_records($1,$2) r", [
+          foreignPatient,
+          clinic,
+        ])
+      ).rows[0].r,
+    ).toEqual([]);
+    const file = (as: string, user: string, id = byDoctor.id) =>
+      db.query<any>("select public.medical_record_file($1,$2,$3,$4) f", [
+        user,
+        clinic,
+        id,
+        as,
+      ]);
+    expect((await file("patient", ownPatient)).rows[0].f.file_name).toBe("blood.pdf");
+    await expect(file("patient", foreignPatient)).rejects.toThrow("NOT_FOUND");
+    await expect(file("doctor", otherDoctorUser)).rejects.toThrow("FORBIDDEN");
+    expect((await file("staff", actor)).rows[0].f.storage_path).toContain(ownPatient);
+    const remove = (user: string, id: string, doctorOnly: boolean) =>
+      db.query("select public.medical_record_delete($1,$2,$3,$4)", [
+        user,
+        clinic,
+        id,
+        doctorOnly,
+      ]);
+    await expect(remove(workspaceDoctorUser, byAdmin.id, true)).rejects.toThrow(
+      "FORBIDDEN",
+    );
+    await remove(workspaceDoctorUser, byDoctor.id, true);
+    await expect(file("patient", ownPatient)).rejects.toThrow("NOT_FOUND");
+    const privileges = (
+      await db.query<any>(
+        `select has_function_privilege('authenticated','public.patient_medical_records(uuid,uuid)','execute') a,has_function_privilege('anon','public.medical_record_file(uuid,uuid,uuid,text)','execute') b,has_table_privilege('authenticated','public.medical_records','select') c,(select public from storage.buckets where id='medical-records') d`,
+      )
+    ).rows[0];
+    expect(privileges).toEqual({ a: false, b: false, c: false, d: false });
+  }));
+it("medical documents attach to the appointment's family member and reject foreign members", () =>
+  doctorFixture(async ({ own }) => {
+    const member = (
+      await db.query<any>(
+        "insert into public.family_members(owner_id,full_name,relationship) values($1,'Fictional son','child') returning id",
+        [ownPatient],
+      )
+    ).rows[0].id;
+    await db.query("update public.appointments set family_member_id=$1 where id=$2", [
+      member,
+      own.id,
+    ]);
+    const body = (extra: Record<string, unknown>) =>
+      JSON.stringify({
+        kind: "report",
+        title: "Fictional report",
+        file_name: "report.pdf",
+        mime_type: "application/pdf",
+        size_bytes: 10,
+        storage_path: `${clinic}/${ownPatient}/${crypto.randomUUID()}.pdf`,
+        ...extra,
+      });
+    const saved = (
+      await db.query<any>("select public.medical_record_save($1,$2,$3,$4,true) r", [
+        workspaceDoctorUser,
+        clinic,
+        ownPatient,
+        body({ appointment_id: own.id }),
+      ])
+    ).rows[0].r;
+    expect(saved.family_member_id).toBe(member);
+    expect(saved.family_member_name).toBe("Fictional son");
+    const stranger = (
+      await db.query<any>(
+        "insert into public.family_members(owner_id,full_name,relationship) values($1,'Other child','child') returning id",
+        [foreignPatient],
+      )
+    ).rows[0].id;
+    await expect(
+      db.query("select public.medical_record_save($1,$2,$3,$4,false)", [
+        actor,
+        clinic,
+        ownPatient,
+        body({ family_member_id: stranger }),
+      ]),
+    ).rejects.toThrow("NOT_FOUND");
+  }));

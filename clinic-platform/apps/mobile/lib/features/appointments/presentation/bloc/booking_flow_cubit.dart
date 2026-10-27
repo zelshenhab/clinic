@@ -153,7 +153,7 @@ class BookingFlowCubit extends Cubit<BookingFlowState> {
     }
   }
 
-  Future<void> book() async {
+  Future<void> book({String? familyMemberId}) async {
     if (state.busy ||
         state.loading ||
         state.selected == null ||
@@ -174,6 +174,7 @@ class BookingFlowCubit extends Cubit<BookingFlowState> {
         _service!,
         chosen,
         token,
+        familyMemberId: familyMemberId,
       );
       if (!isClosed && version == _version && scope.current(generation)) {
         emit(

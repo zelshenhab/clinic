@@ -43,6 +43,9 @@ export default function AppointmentDetail({ id, onClose }) {
                 ["doctor", text(record.doctor_name)],
                 ["specialty", text(record.specialty_name)],
                 ["service", text(record.service_name)],
+                ...(record.family_member_id
+                  ? [["account_holder_name", record.account_holder_name]]
+                  : []),
                 [
                   "starts_at",
                   clinicDate(record.starts_at, clinic.timezone, locale),

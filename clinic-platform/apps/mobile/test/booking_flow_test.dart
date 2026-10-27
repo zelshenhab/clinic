@@ -14,6 +14,7 @@ class BookingFake implements BookingRepository {
     ),
   ];
   int bookings = 0, reads = 0;
+  String? bookedFor;
   Completer<BookingReceipt>? pending;
   FailureKind? failure;
   @override
@@ -34,9 +35,11 @@ class BookingFake implements BookingRepository {
     String d,
     String s,
     DateTime starts,
-    RequestCancellation t,
-  ) async {
+    RequestCancellation t, {
+    String? familyMemberId,
+  }) async {
     bookings++;
+    bookedFor = familyMemberId;
     if (failure != null) {
       slots = [];
       throw AppException(failure!);

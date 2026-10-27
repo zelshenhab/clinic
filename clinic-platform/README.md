@@ -30,3 +30,7 @@ See [architecture](docs/architecture.md), [security](docs/security.md), and [API
 [Phase 5 doctor workspace](docs/phase-5-doctor.md): private doctor appointments, patients, calendar, requests and administrator approval. Apply incremental migration 007 after the existing schema before using these routes.
 
 [Direct doctor availability, mobile booking and performance update](docs/availability-and-performance.md). Apply migration 008 after the earlier migrations.
+
+[Family profile and add to calendar](docs/family-and-calendar.md). Apply migration 011 after 010.
+
+[Medical documents](docs/medical-documents.md). Apply migration 012 after 011.

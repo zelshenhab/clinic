@@ -7,6 +7,10 @@ import { memberships, authorize, type Membership } from "./permissions.js";
 import { adminRepository } from "./repository.js";
 import { AdminService } from "./service.js";
 import { catalogUpload, uploadArtwork } from "./uploads.js";
+import {
+  medicalRecords,
+  recordUpload,
+} from "../medical_records/service.js";
 import { z } from "zod";
 import {
   uuid,
@@ -26,7 +30,8 @@ import {
 export function adminRoutes(db: SupabaseClient) {
   const router = Router(),
     repo = adminRepository(db),
-    service = new AdminService(db);
+    service = new AdminService(db),
+    records = medicalRecords(db);
   const ok = (res: Response, data: unknown, status = 200) =>
     res.status(status).json({
       success: true,
@@ -489,6 +494,66 @@ export function adminRoutes(db: SupabaseClient) {
       ),
       201,
     ),
+  );
+  router.get(
+    base + "/patients/:patientId/medical-records",
+    guard("records"),
+    async (req, res) =>
+      ok(
+        res,
+        await records.list(
+          res.locals.access.userId,
+          res.locals.clinic,
+          uuid.parse(req.params.patientId),
+          false,
+        ),
+      ),
+  );
+  router.post(
+    base + "/patients/:patientId/medical-records",
+    guard("records"),
+    recordUpload,
+    async (req, res) =>
+      ok(
+        res,
+        await records.upload(
+          res.locals.access.userId,
+          res.locals.clinic,
+          uuid.parse(req.params.patientId),
+          false,
+          req.body,
+          req.file,
+        ),
+        201,
+      ),
+  );
+  router.get(
+    base + "/medical-records/:id/download",
+    guard("records"),
+    async (req, res) =>
+      ok(
+        res,
+        await records.download(
+          res.locals.access.userId,
+          res.locals.clinic,
+          uuid.parse(req.params.id),
+          "staff",
+        ),
+      ),
+  );
+  router.delete(
+    base + "/medical-records/:id",
+    guard("records"),
+    async (req, res) =>
+      ok(
+        res,
+        await records.remove(
+          res.locals.access.userId,
+          res.locals.clinic,
+          uuid.parse(req.params.id),
+          false,
+        ),
+      ),
   );
   router.post(
     base + "/uploads",

@@ -10,6 +10,7 @@ import '../../../../core/localization/app_localizations.dart';
 import '../../../../core/localization/catalog_format.dart';
 import '../../domain/entities/booking_context.dart';
 import '../bloc/booking_entry_cubit.dart';
+import '../../../family/domain/repositories/family_repository.dart';
 
 class BookingEntryPage extends StatelessWidget {
   const BookingEntryPage({
@@ -17,8 +18,10 @@ class BookingEntryPage extends StatelessWidget {
     required this.clinicId,
     this.query = const CatalogQuery(),
     this.tools,
+    this.family,
     this.initialDate,
   });
+  final FamilyRepository? family;
   final String clinicId;
   final CatalogQuery query;
   final PatientToolsRepository? tools;
@@ -79,6 +82,7 @@ class BookingEntryPage extends StatelessWidget {
               data: data,
               query: query,
               tools: tools,
+              family: family,
               initialDate: initialDate,
             ),
           const SizedBox(height: 24),

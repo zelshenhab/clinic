@@ -120,6 +120,7 @@ class ApiClient {
         409 => switch (code) {
           'POLICY_CUTOFF' => FailureKind.policyCutoff,
           'SLOT_ALREADY_AVAILABLE' => FailureKind.slotsAvailable,
+          'FAMILY_LIMIT_REACHED' => FailureKind.familyLimit,
           _ => FailureKind.bookingConflict,
         },
         400 || 422 => FailureKind.validation,

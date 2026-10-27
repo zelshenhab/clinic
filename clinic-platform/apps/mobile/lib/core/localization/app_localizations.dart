@@ -1207,6 +1207,204 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'In consultation'**
   String get inConsultation;
+
+  /// No description provided for @familyMembers.
+  ///
+  /// In en, this message translates to:
+  /// **'My family'**
+  String get familyMembers;
+
+  /// No description provided for @familyMembersHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Add relatives to book appointments for them from your account.'**
+  String get familyMembersHelp;
+
+  /// No description provided for @noFamilyMembers.
+  ///
+  /// In en, this message translates to:
+  /// **'No family members yet'**
+  String get noFamilyMembers;
+
+  /// No description provided for @addFamilyMember.
+  ///
+  /// In en, this message translates to:
+  /// **'Add family member'**
+  String get addFamilyMember;
+
+  /// No description provided for @editFamilyMember.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit family member'**
+  String get editFamilyMember;
+
+  /// No description provided for @removeFamilyMember.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get removeFamilyMember;
+
+  /// No description provided for @removeFamilyMemberTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove family member?'**
+  String get removeFamilyMemberTitle;
+
+  /// No description provided for @removeFamilyMemberBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Existing appointments stay unchanged, but you will no longer be able to book for this person.'**
+  String get removeFamilyMemberBody;
+
+  /// No description provided for @relationship.
+  ///
+  /// In en, this message translates to:
+  /// **'Relationship'**
+  String get relationship;
+
+  /// No description provided for @relationChild.
+  ///
+  /// In en, this message translates to:
+  /// **'Child'**
+  String get relationChild;
+
+  /// No description provided for @relationSpouse.
+  ///
+  /// In en, this message translates to:
+  /// **'Spouse'**
+  String get relationSpouse;
+
+  /// No description provided for @relationParent.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent'**
+  String get relationParent;
+
+  /// No description provided for @relationSibling.
+  ///
+  /// In en, this message translates to:
+  /// **'Brother or sister'**
+  String get relationSibling;
+
+  /// No description provided for @relationOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get relationOther;
+
+  /// No description provided for @dateOfBirthOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Date of birth (optional)'**
+  String get dateOfBirthOptional;
+
+  /// No description provided for @clearDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear date'**
+  String get clearDate;
+
+  /// No description provided for @bookingFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Who is this appointment for?'**
+  String get bookingFor;
+
+  /// No description provided for @myself.
+  ///
+  /// In en, this message translates to:
+  /// **'Myself'**
+  String get myself;
+
+  /// No description provided for @appointmentFor.
+  ///
+  /// In en, this message translates to:
+  /// **'For: {name}'**
+  String appointmentFor(String name);
+
+  /// No description provided for @familyLimitReached.
+  ///
+  /// In en, this message translates to:
+  /// **'You can add up to 10 family members.'**
+  String get familyLimitReached;
+
+  /// No description provided for @addToCalendar.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to calendar'**
+  String get addToCalendar;
+
+  /// No description provided for @calendarUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the calendar on this device.'**
+  String get calendarUnavailable;
+
+  /// No description provided for @calendarEventTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Appointment: {doctor}'**
+  String calendarEventTitle(String doctor);
+
+  /// No description provided for @medicalDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'Medical documents'**
+  String get medicalDocuments;
+
+  /// No description provided for @noDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'Doctor\'s reports and test results will appear here'**
+  String get noDocuments;
+
+  /// No description provided for @allDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get allDocuments;
+
+  /// No description provided for @docReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Doctor\'s report'**
+  String get docReport;
+
+  /// No description provided for @docLabResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Lab results'**
+  String get docLabResult;
+
+  /// No description provided for @docImaging.
+  ///
+  /// In en, this message translates to:
+  /// **'Imaging'**
+  String get docImaging;
+
+  /// No description provided for @docPrescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Prescription'**
+  String get docPrescription;
+
+  /// No description provided for @docOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Document'**
+  String get docOther;
+
+  /// No description provided for @openDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get openDocument;
+
+  /// No description provided for @documentUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the document. Try again.'**
+  String get documentUnavailable;
 }
 
 class _AppLocalizationsDelegate

@@ -311,6 +311,468 @@ paths:
           $ref: "#/components/responses/Failure"
         "503":
           $ref: "#/components/responses/Failure"
+  /api/v1/admin/clinics/{clinicId}/patients/{patientId}/medical-records:
+    get:
+      tags:
+        - Medical documents
+      summary: "Clinic administrator or receptionist lists a patient's documents"
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: patientId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+    post:
+      tags:
+        - Medical documents
+      summary: "Upload a document for a clinic patient; the patient is notified"
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: patientId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [file, title, kind]
+              properties:
+                file: { type: string, format: binary, description: "PDF, JPEG or PNG up to 10 MB; the signature must match the declared type" }
+                title: { type: string, minLength: 1, maxLength: 200 }
+                kind: { type: string, enum: [report, lab_result, imaging, prescription, other] }
+                appointment_id: { type: string, format: uuid, description: "Links the document and inherits its family member" }
+                family_member_id: { type: string, format: uuid }
+      responses:
+        "201":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+  /api/v1/admin/clinics/{clinicId}/medical-records/{id}/download:
+    get:
+      tags:
+        - Medical documents
+      summary: "Audited one-minute signed download link"
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+  /api/v1/admin/clinics/{clinicId}/medical-records/{id}:
+    delete:
+      tags:
+        - Medical documents
+      summary: "Archive a document; the patient no longer sees it"
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+  /api/v1/doctor/patients/{id}/medical-records:
+    get:
+      tags:
+        - Medical documents
+      summary: "Doctor lists documents of a patient they have an appointment with"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: clinic_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+    post:
+      tags:
+        - Medical documents
+      summary: "Doctor uploads a document for their own patient"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: clinic_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [file, title, kind]
+              properties:
+                file: { type: string, format: binary, description: "PDF, JPEG or PNG up to 10 MB; the signature must match the declared type" }
+                title: { type: string, minLength: 1, maxLength: 200 }
+                kind: { type: string, enum: [report, lab_result, imaging, prescription, other] }
+                appointment_id: { type: string, format: uuid, description: "Links the document and inherits its family member" }
+                family_member_id: { type: string, format: uuid }
+      responses:
+        "201":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+  /api/v1/doctor/medical-records/{id}/download:
+    get:
+      tags:
+        - Medical documents
+      summary: "Audited signed download for the doctor's own patient"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: clinic_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+  /api/v1/doctor/medical-records/{id}:
+    delete:
+      tags:
+        - Medical documents
+      summary: "Doctor archives a document they uploaded"
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: clinic_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+  /api/v1/clinics/{clinicId}/medical-records:
+    get:
+      tags:
+        - Medical documents
+      summary: "Verified patient lists own and family members' documents in this clinic"
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+  /api/v1/clinics/{clinicId}/medical-records/{id}/download:
+    get:
+      tags:
+        - Medical documents
+      summary: "Verified patient receives a one-minute signed download link"
+      parameters:
+        - name: clinicId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+  /api/v1/me/family-members:
+    get:
+      summary: Active family members of the verified account (max 10)
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "503":
+          $ref: "#/components/responses/Failure"
+    post:
+      summary: Add a family member the account holder can book for
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [full_name, relationship]
+              properties:
+                full_name: { type: string, minLength: 2, maxLength: 120 }
+                relationship: { type: string, enum: [child, spouse, parent, sibling, other] }
+                date_of_birth: { type: [string, "null"], format: date, description: Not in the future }
+      responses:
+        "201":
+          description: Created family member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "403":
+          $ref: "#/components/responses/Failure"
+        "409":
+          $ref: "#/components/responses/Failure"
+  /api/v1/me/family-members/{id}:
+    patch:
+      summary: Update an own active family member
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [full_name, relationship]
+              properties:
+                full_name: { type: string, minLength: 2, maxLength: 120 }
+                relationship: { type: string, enum: [child, spouse, parent, sibling, other] }
+                date_of_birth: { type: [string, "null"], format: date, description: Not in the future }
+      responses:
+        "200":
+          description: Updated family member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
+    delete:
+      summary: Archive an own family member; past appointments keep their attribution
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Archived
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Success"
+        "400":
+          $ref: "#/components/responses/Failure"
+        "401":
+          $ref: "#/components/responses/Failure"
+        "404":
+          $ref: "#/components/responses/Failure"
   /api/v1/me/profile:
     get:
       summary: Current patient profile, null before completion
@@ -3682,7 +4144,7 @@ paths:
       tags:
         - Booking
       summary: Shared atomic patient booking
-      description: Verified patient with actual clinic membership; backend derives patient identity
+      description: Verified patient with actual clinic membership; backend derives patient identity. Optional family_member_id books for an own active family member; the appointment stays owned by the account holder.
       parameters:
         - name: clinicId
           in: path

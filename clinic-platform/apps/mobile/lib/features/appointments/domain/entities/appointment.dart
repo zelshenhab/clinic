@@ -10,6 +10,9 @@ class Appointment {
     this.doctorName = const {},
     this.serviceName = const {},
     this.attendanceStatus = "scheduled",
+    this.endsAt,
+    this.familyMemberId,
+    this.patientName,
   });
   final String id, clinicId, status;
   final DateTime startsAt;
@@ -17,4 +20,7 @@ class Appointment {
   final DateTime? updatedAt;
   final Map<String, String> doctorName, serviceName;
   final String attendanceStatus;
+  final DateTime? endsAt;
+  // Set when the account holder booked for a family member; patientName is then theirs.
+  final String? familyMemberId, patientName;
 }

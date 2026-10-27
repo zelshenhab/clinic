@@ -15,7 +15,13 @@ String? guardRoute({
       auth.profile?.complete != true) {
     return path == '/profile-completion' ? null : '/profile-completion';
   }
-  if (const ['/appointments', '/notifications', '/waitlist'].contains(path) &&
+  if (const [
+        '/appointments',
+        '/notifications',
+        '/waitlist',
+        '/family',
+        '/documents',
+      ].contains(path) &&
       !auth.signedIn) {
     return '/login?from=${path.substring(1)}';
   }

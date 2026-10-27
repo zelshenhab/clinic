@@ -60,6 +60,22 @@ class ProfilePage extends StatelessWidget {
           AppCard(
             child: Column(
               children: [
+                if (state.signedIn)
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.description_outlined),
+                    title: Text(t.medicalDocuments),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => context.push('/documents'),
+                  ),
+                if (state.signedIn)
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.family_restroom_outlined),
+                    title: Text(t.familyMembers),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => context.push('/family'),
+                  ),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: const Icon(Icons.settings_outlined),

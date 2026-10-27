@@ -600,4 +600,111 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get inConsultation => 'In consultation';
+
+  @override
+  String get familyMembers => 'My family';
+
+  @override
+  String get familyMembersHelp =>
+      'Add relatives to book appointments for them from your account.';
+
+  @override
+  String get noFamilyMembers => 'No family members yet';
+
+  @override
+  String get addFamilyMember => 'Add family member';
+
+  @override
+  String get editFamilyMember => 'Edit family member';
+
+  @override
+  String get removeFamilyMember => 'Remove';
+
+  @override
+  String get removeFamilyMemberTitle => 'Remove family member?';
+
+  @override
+  String get removeFamilyMemberBody =>
+      'Existing appointments stay unchanged, but you will no longer be able to book for this person.';
+
+  @override
+  String get relationship => 'Relationship';
+
+  @override
+  String get relationChild => 'Child';
+
+  @override
+  String get relationSpouse => 'Spouse';
+
+  @override
+  String get relationParent => 'Parent';
+
+  @override
+  String get relationSibling => 'Brother or sister';
+
+  @override
+  String get relationOther => 'Other';
+
+  @override
+  String get dateOfBirthOptional => 'Date of birth (optional)';
+
+  @override
+  String get clearDate => 'Clear date';
+
+  @override
+  String get bookingFor => 'Who is this appointment for?';
+
+  @override
+  String get myself => 'Myself';
+
+  @override
+  String appointmentFor(String name) {
+    return 'For: $name';
+  }
+
+  @override
+  String get familyLimitReached => 'You can add up to 10 family members.';
+
+  @override
+  String get addToCalendar => 'Add to calendar';
+
+  @override
+  String get calendarUnavailable =>
+      'Could not open the calendar on this device.';
+
+  @override
+  String calendarEventTitle(String doctor) {
+    return 'Appointment: $doctor';
+  }
+
+  @override
+  String get medicalDocuments => 'Medical documents';
+
+  @override
+  String get noDocuments =>
+      'Doctor\'s reports and test results will appear here';
+
+  @override
+  String get allDocuments => 'All';
+
+  @override
+  String get docReport => 'Doctor\'s report';
+
+  @override
+  String get docLabResult => 'Lab results';
+
+  @override
+  String get docImaging => 'Imaging';
+
+  @override
+  String get docPrescription => 'Prescription';
+
+  @override
+  String get docOther => 'Document';
+
+  @override
+  String get openDocument => 'Open';
+
+  @override
+  String get documentUnavailable => 'Could not open the document. Try again.';
 }
